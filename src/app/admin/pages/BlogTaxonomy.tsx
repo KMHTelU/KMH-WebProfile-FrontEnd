@@ -3,9 +3,9 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { FieldLabel } from "../components/FieldLabel";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -111,7 +111,7 @@ function NameSlugManager({
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Nama</Label>
+              <FieldLabel required>Nama</FieldLabel>
               <Input
                 value={name}
                 onChange={(e) => {
@@ -121,9 +121,10 @@ function NameSlugManager({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Slug</Label>
+              <FieldLabel>Slug</FieldLabel>
               <Input
                 value={slug}
+                placeholder="otomatis dibuat dari nama"
                 onChange={(e) => {
                   setSlug(e.target.value);
                   setSlugTouched(true);

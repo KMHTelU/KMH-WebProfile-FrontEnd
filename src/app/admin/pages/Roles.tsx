@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { FileUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ImportDialog } from "../components/ImportDialog";
+import { FieldLabel } from "../components/FieldLabel";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import {
   Dialog,
@@ -30,6 +31,7 @@ export function AdminRoles() {
 
   const [editing, setEditing] = useState<Role | null>(null);
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Role | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -80,9 +82,14 @@ export function AdminRoles() {
         title="Roles"
         description="Peran & hak akses pengguna"
         action={
-          <Button onClick={openCreate}>
-            <Plus size={16} /> Role Baru
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <FileUp size={16} /> Import
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus size={16} /> Role Baru
+            </Button>
+          </>
         }
       />
       <DataTable columns={columns} rows={roles} isLoading={isLoading} rowKey={(r) => r.id} />
@@ -94,11 +101,13 @@ export function AdminRoles() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="role-name">Nama</Label>
+              <FieldLabel htmlFor="role-name" required>
+                Nama
+              </FieldLabel>
               <Input id="role-name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="role-desc">Deskripsi</Label>
+              <FieldLabel htmlFor="role-desc">Deskripsi</FieldLabel>
               <Textarea
                 id="role-desc"
                 value={description}
@@ -116,6 +125,13 @@ export function AdminRoles() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportDialog
+        entity="roles"
+        entityLabel="Role"
+        open={importOpen}
+        onOpenChange={setImportOpen}
+      />
 
       <ConfirmDialog
         open={!!toDelete}

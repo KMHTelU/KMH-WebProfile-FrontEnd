@@ -3,6 +3,7 @@ import { Plus, Trash2, Upload } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { FieldLabel } from "../components/FieldLabel";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -133,7 +134,7 @@ export function AdminBanners() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label>Media (gambar/video)</Label>
+              <FieldLabel required>Media (gambar/video)</FieldLabel>
               <div
                 className="border border-dashed border-neutral-300 rounded-lg p-4 flex items-center gap-3 cursor-pointer hover:bg-neutral-50"
                 onClick={() => fileRef.current?.click()}
@@ -162,24 +163,24 @@ export function AdminBanners() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Judul</Label>
+              <FieldLabel required>Judul</FieldLabel>
               <Input value={form.title} onChange={(e) => set("title", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Subjudul</Label>
+              <FieldLabel>Subjudul</FieldLabel>
               <Input value={form.subtitle} onChange={(e) => set("subtitle", e.target.value)} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Teks CTA</Label>
+                <FieldLabel>Teks CTA</FieldLabel>
                 <Input value={form.cta_text} onChange={(e) => set("cta_text", e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label>URL CTA</Label>
+                <FieldLabel>URL CTA</FieldLabel>
                 <Input value={form.cta_url} onChange={(e) => set("cta_url", e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label>Mulai Tampil</Label>
+                <FieldLabel required>Mulai Tampil</FieldLabel>
                 <Input
                   type="datetime-local"
                   value={form.start_date}
@@ -187,7 +188,7 @@ export function AdminBanners() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Selesai Tampil</Label>
+                <FieldLabel required>Selesai Tampil</FieldLabel>
                 <Input
                   type="datetime-local"
                   value={form.end_date}

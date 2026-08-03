@@ -83,7 +83,7 @@ export function mapMember(row: Row): Member {
   return {
     id: String(row.id),
     name: str(row.name),
-    npm: str(row.npm),
+    nim: str(row.nim ?? row.npm),
     bio: str(row.bio),
     email: str(row.email),
     phone: str(row.phone),
@@ -101,7 +101,7 @@ export function mapDivision(row: Row): Division {
     ? {
         id: String(row.id_3),
         name: str(row.name_2),
-        npm: str(row.npm),
+        nim: str(row.nim ?? row.npm),
         bio: str(row.bio),
         email: str(row.email),
         phone: str(row.phone),

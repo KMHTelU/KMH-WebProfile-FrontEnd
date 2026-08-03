@@ -1,7 +1,16 @@
 // Lapisan fungsi CRUD untuk area admin (semua di bawah /protected).
 // Read publik tetap dipakai dari endpoints.ts; di sini fokus write + read admin-only.
 
-import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "./client";
+import axios from "axios";
+import {
+  api,
+  apiDelete,
+  apiGet,
+  apiPatch,
+  apiPost,
+  apiPut,
+  type ApiEnvelope,
+} from "./client";
 import {
   mapBanner,
   mapContactMessage,
@@ -17,6 +26,10 @@ import type {
   Banner,
   BannerFormPayload,
   BlogPostPayload,
+  BulkReport,
+  BulkUpdateItem,
+  ChangePasswordPayload,
+  ImportEntity,
   ContactMessage,
   DivisionPayload,
   DivisionUpdatePayload,
@@ -45,6 +58,108 @@ const listConfig = (params?: ListParams) => ({
 const asArray = (data: unknown): any[] => (Array.isArray(data) ? data : []);
 
 const multipart = { headers: { "Content-Type": "multipart/form-data" } };
+
+// ── Auth: ganti password user yang sedang login ──
+export async function changePassword(
+  payload: ChangePasswordPayload
+): Promise<void> {
+  await apiPost<null>(`${P}/auth/change-password`, payload);
+}
+
+// ── Bulk helper ──
+// Backend membalas 201/200 (semua sukses), 207 (sebagian), atau 400 (semua
+// gagal) dan SELALU menyertakan BulkReport di data. Karena axios melempar
+// error untuk 400, laporan diambil kembali dari response error-nya.
+function extractBulkReport(err: unknown): BulkReport | null {
+  if (!axios.isAxiosError(err)) return null;
+  const data = (err.response?.data as ApiEnvelope<BulkReport> | undefined)?.data;
+  return data && typeof data === "object" && Array.isArray((data as BulkReport).results)
+    ? (data as BulkReport)
+    : null;
+}
+
+async function bulkRequest(
+  method: "post" | "put",
+  url: string,
+  items: unknown[]
+): Promise<BulkReport> {
+  try {
+    const resp = await api.request<ApiEnvelope<BulkReport>>({
+      method,
+      url,
+      data: { items },
+    });
+    return resp.data.data;
+  } catch (err) {
+    const report = extractBulkReport(err);
+    if (report) return report;
+    throw err;
+  }
+}
+
+// Bulk create/update per entitas (payload item mengikuti kontrak single-nya).
+export const bulkCreateMembers = (items: MemberPayload[]) =>
+  bulkRequest("post", `${P}/members/bulk`, items);
+export const bulkUpdateMembers = (items: BulkUpdateItem<MemberUpdatePayload>[]) =>
+  bulkRequest("put", `${P}/members/bulk`, items);
+
+export const bulkCreateDivisions = (items: DivisionPayload[]) =>
+  bulkRequest("post", `${P}/divisions/bulk`, items);
+export const bulkUpdateDivisions = (
+  items: BulkUpdateItem<DivisionUpdatePayload>[]
+) => bulkRequest("put", `${P}/divisions/bulk`, items);
+
+export const bulkCreateEvents = (items: EventPayload[]) =>
+  bulkRequest("post", `${P}/events/bulk`, items);
+export const bulkUpdateEvents = (items: BulkUpdateItem<Partial<EventPayload>>[]) =>
+  bulkRequest("put", `${P}/events/bulk`, items);
+
+export const bulkCreateRoles = (items: RolePayload[]) =>
+  bulkRequest("post", `${P}/roles/bulk`, items);
+export const bulkUpdateRoles = (items: BulkUpdateItem<Partial<RolePayload>>[]) =>
+  bulkRequest("put", `${P}/roles/bulk`, items);
+
+// ── Import Excel/CSV ──
+export async function downloadImportTemplate(
+  entity: ImportEntity,
+  format: "xlsx" | "csv"
+): Promise<void> {
+  const resp = await api.get(`${P}/import/${entity}/template`, {
+    params: { format },
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(resp.data as Blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `template-${entity}.${format}`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function importRequest(
+  entity: ImportEntity,
+  file: File,
+  dryRun: boolean
+): Promise<BulkReport> {
+  const form = new FormData();
+  form.append("file", file);
+  const url = dryRun ? `${P}/import/${entity}/preview` : `${P}/import/${entity}`;
+  try {
+    const resp = await api.post<ApiEnvelope<BulkReport>>(url, form, multipart);
+    return resp.data.data;
+  } catch (err) {
+    const report = extractBulkReport(err);
+    if (report) return report;
+    throw err;
+  }
+}
+
+export const previewImport = (entity: ImportEntity, file: File) =>
+  importRequest(entity, file, true);
+export const commitImport = (entity: ImportEntity, file: File) =>
+  importRequest(entity, file, false);
 
 // ── Media (upload generik) ──
 export async function uploadMedia(file: File): Promise<Media> {

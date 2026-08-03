@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Save } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { MediaPicker } from "../components/MediaPicker";
+import { MarkdownEditor } from "../components/MarkdownEditor";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -128,12 +129,11 @@ export function AdminBlogPostEditor() {
           <Textarea value={form.excerpt} onChange={(e) => set("excerpt", e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label>Konten (Markdown)</Label>
-          <Textarea
+          <Label>Konten</Label>
+          <MarkdownEditor
             value={form.content}
-            onChange={(e) => set("content", e.target.value)}
-            className="min-h-[280px] font-mono text-sm"
-            placeholder={"# Judul\n\nTulis konten dalam format Markdown…"}
+            onChange={(v) => set("content", v)}
+            placeholder={"Tulis konten artikel di sini…\n\nGunakan tombol di atas untuk memformat teks (judul, tebal, daftar, gambar, dll)."}
           />
         </div>
 

@@ -5,6 +5,7 @@ import { parseApiError } from "./client";
 import { getContactMessage, getUser } from "./admin";
 import { queryKeys } from "./hooks";
 import type { ListParams } from "./endpoints";
+import type { BulkReport, ImportEntity } from "./types";
 
 // ── Query hooks admin-only ──
 export const useAdminMembers = (params?: ListParams) =>
@@ -297,5 +298,98 @@ export const useDeleteRole = () =>
 export const useUploadMedia = () =>
   useMutation({
     mutationFn: (file: File) => admin.uploadMedia(file),
+    onError: (err) => toast.error(parseApiError(err).message),
+  });
+
+// ── Ganti password (user yang sedang login) ──
+export const useChangePassword = () =>
+  useMutation({
+    mutationFn: admin.changePassword,
+    onSuccess: () => toast.success("Password berhasil diganti"),
+    onError: (err) => toast.error(parseApiError(err).message),
+  });
+
+// ── Bulk update ──
+// Toast merangkum laporan; detail per-item tersedia di BulkReport hasil mutasi.
+function bulkToast(report: BulkReport, label: string) {
+  if (report.failed === 0) {
+    toast.success(`${label}: ${report.succeeded} item berhasil`);
+  } else if (report.succeeded === 0) {
+    toast.error(`${label}: semua item gagal diproses`);
+  } else {
+    toast.warning(
+      `${label}: ${report.succeeded} berhasil, ${report.failed} gagal`
+    );
+  }
+}
+
+function useBulkMutation<TArgs>(
+  mutationFn: (args: TArgs) => Promise<BulkReport>,
+  opts: { label: string; invalidate: readonly unknown[][] }
+) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: (report) => {
+      opts.invalidate.forEach((key) => qc.invalidateQueries({ queryKey: key }));
+      bulkToast(report, opts.label);
+    },
+    onError: (err) => toast.error(parseApiError(err).message),
+  });
+}
+
+export const useBulkUpdateMembers = () =>
+  useBulkMutation(admin.bulkUpdateMembers, {
+    label: "Update anggota",
+    invalidate: [["members"]],
+  });
+
+export const useBulkUpdateEvents = () =>
+  useBulkMutation(admin.bulkUpdateEvents, {
+    label: "Update event",
+    invalidate: [["events"]],
+  });
+
+export const useBulkUpdateDivisions = () =>
+  useBulkMutation(admin.bulkUpdateDivisions, {
+    label: "Update divisi",
+    invalidate: [["divisions"]],
+  });
+
+// ── Import Excel/CSV ──
+const importInvalidateKeys: Record<ImportEntity, string[][]> = {
+  members: [["members"]],
+  divisions: [["divisions"]],
+  "member-divisions": [["members"], ["divisions"]],
+  events: [["events"]],
+  roles: [["roles"]],
+};
+
+export const useImportPreview = () =>
+  useMutation({
+    mutationFn: (args: { entity: ImportEntity; file: File }) =>
+      admin.previewImport(args.entity, args.file),
+    onError: (err) => toast.error(parseApiError(err).message),
+  });
+
+export const useImportCommit = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (args: { entity: ImportEntity; file: File }) =>
+      admin.commitImport(args.entity, args.file),
+    onSuccess: (report, args) => {
+      importInvalidateKeys[args.entity].forEach((key) =>
+        qc.invalidateQueries({ queryKey: key })
+      );
+      bulkToast(report, "Import");
+    },
+    onError: (err) => toast.error(parseApiError(err).message),
+  });
+};
+
+export const useDownloadImportTemplate = () =>
+  useMutation({
+    mutationFn: (args: { entity: ImportEntity; format: "xlsx" | "csv" }) =>
+      admin.downloadImportTemplate(args.entity, args.format),
     onError: (err) => toast.error(parseApiError(err).message),
   });

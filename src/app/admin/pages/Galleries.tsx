@@ -3,6 +3,7 @@ import { Images, Pencil, Plus, Trash2, X } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { FieldLabel } from "../components/FieldLabel";
 import { MediaPicker } from "../components/MediaPicker";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -181,15 +182,15 @@ export function AdminGalleries() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label>Judul</Label>
+              <FieldLabel required>Judul</FieldLabel>
               <Input value={form.title} onChange={(e) => set("title", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Deskripsi</Label>
+              <FieldLabel>Deskripsi</FieldLabel>
               <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Event Terkait</Label>
+              <FieldLabel>Event Terkait</FieldLabel>
               <Select value={form.event_id} onValueChange={(v) => set("event_id", v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih event" />

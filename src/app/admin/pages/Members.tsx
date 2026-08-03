@@ -1,8 +1,20 @@
-import { useRef, useState } from "react";
-import { ImageUp, Pencil, Plus, Trash2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import {
+  FileUp,
+  ImageUp,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  UserCheck,
+  UserX,
+} from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ImportDialog } from "../components/ImportDialog";
+import { BulkActionBar } from "../components/BulkActionBar";
+import { FieldLabel } from "../components/FieldLabel";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -18,6 +30,7 @@ import {
 } from "../../components/ui/dialog";
 import {
   useAdminMembers,
+  useBulkUpdateMembers,
   useCreateMember,
   useDeleteMember,
   useUpdateMember,
@@ -32,16 +45,20 @@ export function AdminMembers() {
   const createM = useCreateMember();
   const updateM = useUpdateMember();
   const deleteM = useDeleteMember();
+  const bulkUpdateM = useBulkUpdateMembers();
   const uploadPhoto = useUploadMemberPhoto();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [toDelete, setToDelete] = useState<Member | null>(null);
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const [form, setForm] = useState({
     name: "",
-    npm: "",
+    nim: "",
     bio: "",
     email: "",
     phone: "",
@@ -53,11 +70,22 @@ export function AdminMembers() {
 
   const set = (k: keyof typeof form, v: any) => setForm((f) => ({ ...f, [k]: v }));
 
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return members;
+    return members.filter(
+      (m) =>
+        (m.name ?? "").toLowerCase().includes(q) ||
+        (m.nim ?? "").toLowerCase().includes(q) ||
+        (m.email ?? "").toLowerCase().includes(q)
+    );
+  }, [members, search]);
+
   const openCreate = () => {
     setEditing(null);
     setForm({
       name: "",
-      npm: "",
+      nim: "",
       bio: "",
       email: "",
       phone: "",
@@ -72,7 +100,7 @@ export function AdminMembers() {
     setEditing(m);
     setForm({
       name: m.name || "",
-      npm: m.npm || "",
+      nim: m.nim || "",
       bio: m.bio || "",
       email: m.email || "",
       phone: m.phone || "",
@@ -87,7 +115,7 @@ export function AdminMembers() {
   const submit = async () => {
     const base = {
       name: form.name,
-      npm: form.npm,
+      nim: form.nim,
       bio: form.bio || undefined,
       email: form.email || undefined,
       phone: form.phone || undefined,
@@ -106,6 +134,13 @@ export function AdminMembers() {
     setOpen(false);
   };
 
+  const bulkSetActive = async (isActive: boolean) => {
+    await bulkUpdateM.mutateAsync(
+      [...selected].map((id) => ({ id, is_active: isActive }))
+    );
+    setSelected(new Set());
+  };
+
   const columns: Column<Member>[] = [
     {
       key: "name",
@@ -121,7 +156,7 @@ export function AdminMembers() {
         </div>
       ),
     },
-    { key: "npm", header: "NPM", cell: (m) => m.npm || "—" },
+    { key: "nim", header: "NIM", cell: (m) => m.nim || "—" },
     {
       key: "period",
       header: "Periode",
@@ -158,14 +193,61 @@ export function AdminMembers() {
     <div>
       <PageHeader
         title="Anggota"
-        description="Data pengurus & anggota KMH"
+        description={`Data pengurus & anggota KMH — ${members.length} orang`}
         action={
-          <Button onClick={openCreate}>
-            <Plus size={16} /> Anggota Baru
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <FileUp size={16} /> Import
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus size={16} /> Anggota Baru
+            </Button>
+          </>
         }
       />
-      <DataTable columns={columns} rows={members} isLoading={isLoading} rowKey={(m) => m.id} />
+
+      <div className="relative mb-3 max-w-xs">
+        <Search
+          size={15}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+        />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari nama, NIM, atau email…"
+          className="pl-9"
+        />
+      </div>
+
+      <BulkActionBar count={selected.size} onClear={() => setSelected(new Set())}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-amber-300 bg-white"
+          disabled={bulkUpdateM.isPending}
+          onClick={() => bulkSetActive(true)}
+        >
+          <UserCheck size={14} /> Aktifkan
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-amber-300 bg-white"
+          disabled={bulkUpdateM.isPending}
+          onClick={() => bulkSetActive(false)}
+        >
+          <UserX size={14} /> Nonaktifkan
+        </Button>
+      </BulkActionBar>
+
+      <DataTable
+        columns={columns}
+        rows={filtered}
+        isLoading={isLoading}
+        rowKey={(m) => m.id}
+        selectedIds={selected}
+        onSelectionChange={setSelected}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -206,27 +288,27 @@ export function AdminMembers() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5 col-span-2">
-              <Label>Nama</Label>
+              <FieldLabel required>Nama</FieldLabel>
               <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>NIM</Label>
-              <Input value={form.npm} onChange={(e) => set("npm", e.target.value)} />
+              <FieldLabel required>NIM</FieldLabel>
+              <Input value={form.nim} onChange={(e) => set("nim", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Email</Label>
+              <FieldLabel>Email</FieldLabel>
               <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Telepon</Label>
+              <FieldLabel>Telepon</FieldLabel>
               <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Instagram URL</Label>
+              <FieldLabel>Instagram URL</FieldLabel>
               <Input value={form.instagram_url} onChange={(e) => set("instagram_url", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Periode Mulai</Label>
+              <FieldLabel required>Periode Mulai</FieldLabel>
               <Input
                 type="number"
                 value={form.period_start}
@@ -234,7 +316,7 @@ export function AdminMembers() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Periode Selesai</Label>
+              <FieldLabel required>Periode Selesai</FieldLabel>
               <Input
                 type="number"
                 value={form.period_end}
@@ -242,7 +324,7 @@ export function AdminMembers() {
               />
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label>Bio</Label>
+              <FieldLabel>Bio</FieldLabel>
               <Textarea value={form.bio} onChange={(e) => set("bio", e.target.value)} />
             </div>
             {editing && (
@@ -258,13 +340,20 @@ export function AdminMembers() {
             </Button>
             <Button
               onClick={submit}
-              disabled={!form.name || !form.npm || createM.isPending || updateM.isPending}
+              disabled={!form.name || !form.nim || createM.isPending || updateM.isPending}
             >
               Simpan
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportDialog
+        entity="members"
+        entityLabel="Anggota"
+        open={importOpen}
+        onOpenChange={setImportOpen}
+      />
 
       <ConfirmDialog
         open={!!toDelete}

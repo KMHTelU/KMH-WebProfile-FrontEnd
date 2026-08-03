@@ -5,6 +5,7 @@ import { SmartImage } from "../components/common/SmartImage";
 import { Seo } from "../components/common/Seo";
 import { useOrganizationProfile } from "../../lib/api/hooks";
 import { ENABLE_STATIC_FALLBACK, ORG_PROFILE_ID } from "../../lib/config";
+import { parseHistoryTimeline } from "../../lib/org-history";
 
 const ABOUT_HERO = "https://images.unsplash.com/photo-1758274539654-23fa349cc090?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920";
 
@@ -103,9 +104,12 @@ export function About() {
   const description = pickList(org?.description, defaultDescription);
   const vision = pick(org?.vision, defaultVision, "");
   const misi = pickList(org?.mission, defaultMisi);
-  // Sejarah: backend menyimpan teks tunggal. Jika ada, tampilkan sebagai paragraf;
-  // jika tidak, jatuh ke timeline statis (dirender di blok else di bawah).
-  const history = splitLines(org?.history);
+  // Sejarah: kolom teks bisa berisi JSON timeline (tahun/judul/deskripsi) dari
+  // admin, teks paragraf lama, atau kosong (→ timeline statis bawaan).
+  const historyTimeline = parseHistoryTimeline(org?.history);
+  const history = historyTimeline ? [] : splitLines(org?.history);
+  const timelineItems =
+    historyTimeline && historyTimeline.length > 0 ? historyTimeline : timeline;
   const heroSrc = org?.logo?.url || ABOUT_HERO;
   const visionLogo = org?.logo?.url || kmhLogo;
 
@@ -255,7 +259,7 @@ export function About() {
             {/* Timeline line */}
             <div className="absolute left-[19px] top-2 bottom-2 w-px bg-neutral-200" />
             <div className="space-y-8">
-              {timeline.map((item, i) => (
+              {timelineItems.map((item, i) => (
                 <div key={i} className="flex gap-6">
                   <div className="relative shrink-0">
                     <div
@@ -266,13 +270,19 @@ export function About() {
                     </div>
                   </div>
                   <div className="pb-2 pt-1">
-                    <div className="text-xs text-amber-600 mb-1" style={{ fontWeight: 700 }}>
-                      {item.year}
-                    </div>
-                    <h3 className="text-neutral-900 mb-1.5" style={{ fontSize: "1rem", fontWeight: 600 }}>
-                      {item.title}
-                    </h3>
-                    <p className="text-neutral-500 text-sm leading-relaxed">{item.description}</p>
+                    {item.year && (
+                      <div className="text-xs text-amber-600 mb-1" style={{ fontWeight: 700 }}>
+                        {item.year}
+                      </div>
+                    )}
+                    {item.title && (
+                      <h3 className="text-neutral-900 mb-1.5" style={{ fontSize: "1rem", fontWeight: 600 }}>
+                        {item.title}
+                      </h3>
+                    )}
+                    {item.description && (
+                      <p className="text-neutral-500 text-sm leading-relaxed">{item.description}</p>
+                    )}
                   </div>
                 </div>
               ))}

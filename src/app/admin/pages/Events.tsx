@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Eye, EyeOff, FileUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ImportDialog } from "../components/ImportDialog";
+import { BulkActionBar } from "../components/BulkActionBar";
+import { FieldLabel } from "../components/FieldLabel";
 import { MediaPicker } from "../components/MediaPicker";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -26,11 +29,31 @@ import {
 } from "../../components/ui/select";
 import {
   useAdminEvents,
+  useBulkUpdateEvents,
   useCreateEvent,
   useDeleteEvent,
   useUpdateEvent,
 } from "../../../lib/api/admin-hooks";
 import type { EventItem, EventPayload } from "../../../lib/api/types";
+
+// Backend mewajibkan title/slug/start_time pada update, jadi item bulk
+// dibangun dari data event yang sudah dimuat.
+function toFullPayload(e: EventItem): EventPayload {
+  return {
+    title: e.title ?? "",
+    slug: e.slug ?? "",
+    description: e.description ?? undefined,
+    event_type: e.eventType ?? undefined,
+    start_time: e.startTime ?? "",
+    end_time: e.endTime ?? undefined,
+    location: e.location ?? undefined,
+    google_maps_url: e.googleMapsUrl ?? undefined,
+    registration_url: e.registrationUrl ?? undefined,
+    cover_media_id: e.cover?.id ?? undefined,
+    status: e.status ?? undefined,
+    is_published: e.isPublished,
+  };
+}
 
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -73,13 +96,24 @@ export function AdminEvents() {
   const createM = useCreateEvent();
   const updateM = useUpdateEvent();
   const deleteM = useDeleteEvent();
+  const bulkUpdateM = useBulkUpdateEvents();
 
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<EventItem | null>(null);
   const [toDelete, setToDelete] = useState<EventItem | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [form, setForm] = useState({ ...emptyForm });
   const [slugTouched, setSlugTouched] = useState(false);
   const set = (k: keyof typeof form, v: any) => setForm((f) => ({ ...f, [k]: v }));
+
+  const bulkSetPublished = async (isPublished: boolean) => {
+    const items = events
+      .filter((e) => selected.has(e.id))
+      .map((e) => ({ id: e.id, ...toFullPayload(e), is_published: isPublished }));
+    await bulkUpdateM.mutateAsync(items);
+    setSelected(new Set());
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -170,12 +204,46 @@ export function AdminEvents() {
         title="Events"
         description="Kelola acara & dokumentasinya"
         action={
-          <Button onClick={openCreate}>
-            <Plus size={16} /> Event Baru
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <FileUp size={16} /> Import
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus size={16} /> Event Baru
+            </Button>
+          </>
         }
       />
-      <DataTable columns={columns} rows={events} isLoading={isLoading} rowKey={(e) => e.id} />
+
+      <BulkActionBar count={selected.size} onClear={() => setSelected(new Set())}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-amber-300 bg-white"
+          disabled={bulkUpdateM.isPending}
+          onClick={() => bulkSetPublished(true)}
+        >
+          <Eye size={14} /> Publikasikan
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-amber-300 bg-white"
+          disabled={bulkUpdateM.isPending}
+          onClick={() => bulkSetPublished(false)}
+        >
+          <EyeOff size={14} /> Jadikan Draft
+        </Button>
+      </BulkActionBar>
+
+      <DataTable
+        columns={columns}
+        rows={events}
+        isLoading={isLoading}
+        rowKey={(e) => e.id}
+        selectedIds={selected}
+        onSelectionChange={setSelected}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
@@ -184,7 +252,7 @@ export function AdminEvents() {
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5 col-span-2">
-              <Label>Judul</Label>
+              <FieldLabel required>Judul</FieldLabel>
               <Input
                 value={form.title}
                 onChange={(e) => {
@@ -194,9 +262,10 @@ export function AdminEvents() {
               />
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label>Slug</Label>
+              <FieldLabel>Slug</FieldLabel>
               <Input
                 value={form.slug}
+                placeholder="otomatis dibuat dari judul"
                 onChange={(e) => {
                   set("slug", e.target.value);
                   setSlugTouched(true);
@@ -204,7 +273,7 @@ export function AdminEvents() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Tipe</Label>
+              <FieldLabel>Tipe</FieldLabel>
               <Select value={form.event_type} onValueChange={(v) => set("event_type", v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -216,7 +285,7 @@ export function AdminEvents() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Status</Label>
+              <FieldLabel>Status</FieldLabel>
               <Select value={form.status} onValueChange={(v) => set("status", v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -229,7 +298,7 @@ export function AdminEvents() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Waktu Mulai</Label>
+              <FieldLabel required>Waktu Mulai</FieldLabel>
               <Input
                 type="datetime-local"
                 value={form.start_time}
@@ -237,7 +306,7 @@ export function AdminEvents() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Waktu Selesai</Label>
+              <FieldLabel>Waktu Selesai</FieldLabel>
               <Input
                 type="datetime-local"
                 value={form.end_time}
@@ -245,24 +314,24 @@ export function AdminEvents() {
               />
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label>Lokasi</Label>
+              <FieldLabel>Lokasi</FieldLabel>
               <Input value={form.location} onChange={(e) => set("location", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Google Maps URL</Label>
+              <FieldLabel>Google Maps URL</FieldLabel>
               <Input value={form.google_maps_url} onChange={(e) => set("google_maps_url", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>URL Registrasi</Label>
+              <FieldLabel>URL Registrasi</FieldLabel>
               <Input value={form.registration_url} onChange={(e) => set("registration_url", e.target.value)} />
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label>Deskripsi</Label>
+              <FieldLabel>Deskripsi</FieldLabel>
               <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} />
             </div>
             <div className="col-span-2">
               <MediaPicker
-                label="Cover"
+                label="Cover (opsional)"
                 value={form.cover_url}
                 onChange={(media) => {
                   set("cover_media_id", media?.id || "");
@@ -288,6 +357,13 @@ export function AdminEvents() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportDialog
+        entity="events"
+        entityLabel="Event"
+        open={importOpen}
+        onOpenChange={setImportOpen}
+      />
 
       <ConfirmDialog
         open={!!toDelete}

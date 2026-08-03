@@ -44,7 +44,7 @@ export interface EventItem {
 export interface Member {
   id: string;
   name: string | null;
-  npm: string | null;
+  nim: string | null;
   bio: string | null;
   email: string | null;
   phone: string | null;
@@ -170,6 +170,20 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface ChangePasswordPayload {
+  old_password: string;
+  new_password: string;
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  new_password: string;
+}
+
 export interface ContactMessagePayload {
   name: string;
   email: string;
@@ -219,7 +233,7 @@ export interface DivisionPayload {
 
 export interface MemberPayload {
   name: string;
-  npm: string;
+  nim: string;
   bio?: string;
   email?: string;
   phone?: string;
@@ -285,6 +299,35 @@ export interface GalleryItemPayload {
   media_id: string;
   sort_order?: number;
 }
+
+// ── Bulk & Import (kontrak backend /bulk dan /import/:entity) ──
+
+export interface BulkItemResult {
+  index: number;
+  status: "success" | "failed";
+  id?: string;
+  /** Nomor baris berkas asli (hanya pada alur import). */
+  row?: number;
+  error?: string;
+}
+
+export interface BulkReport {
+  total: number;
+  succeeded: number;
+  failed: number;
+  results: BulkItemResult[];
+}
+
+/** Entity yang didukung endpoint /protected/import/:entity. */
+export type ImportEntity =
+  | "members"
+  | "divisions"
+  | "member-divisions"
+  | "events"
+  | "roles";
+
+// Item update bulk selalu menyertakan id.
+export type BulkUpdateItem<T> = T & { id: string };
 
 // Field teks banner (dikirim sebagai form field data.* bersama file media).
 export interface BannerFormPayload {

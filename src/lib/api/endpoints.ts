@@ -19,6 +19,8 @@ import type {
   ContactMessagePayload,
   Division,
   EventItem,
+  ForgotPasswordPayload,
+  ResetPasswordPayload,
   Gallery,
   GalleryDetail,
   Member,
@@ -118,4 +120,17 @@ export async function submitContactMessage(
   payload: ContactMessagePayload
 ): Promise<void> {
   await apiPost<null>("/contact-messages", payload);
+}
+
+// ── Lupa / reset password (publik, tanpa auth) ──
+export async function forgotPassword(
+  payload: ForgotPasswordPayload
+): Promise<void> {
+  await apiPost<null>("/forgot-password", payload);
+}
+
+export async function resetPassword(
+  payload: ResetPasswordPayload
+): Promise<void> {
+  await apiPost<null>("/reset-password", payload);
 }

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Clock, Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { FieldLabel } from "../components/FieldLabel";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -30,6 +31,18 @@ import {
   useUsers,
 } from "../../../lib/api/admin-hooks";
 import type { AppUser } from "../../../lib/api/types";
+
+// "3 Agu 2026, 12.40" — ringkas tapi tetap lengkap tanggal & jam.
+const lastLoginFmt = new Intl.DateTimeFormat("id-ID", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+
+function formatLastLogin(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : lastLoginFmt.format(d);
+}
 
 export function AdminUsers() {
   const { data: users = [], isLoading } = useUsers();
@@ -99,6 +112,21 @@ export function AdminUsers() {
         ),
     },
     {
+      key: "lastLoginAt",
+      header: "Login Terakhir",
+      cell: (u) => {
+        const formatted = formatLastLogin(u.lastLoginAt);
+        return formatted ? (
+          <span className="inline-flex items-center gap-1.5 text-neutral-600">
+            <Clock size={13} className="text-neutral-400" />
+            {formatted}
+          </span>
+        ) : (
+          <span className="text-neutral-400">Belum pernah login</span>
+        );
+      },
+    },
+    {
       key: "actions",
       header: "",
       className: "text-right w-24",
@@ -137,24 +165,24 @@ export function AdminUsers() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Nama</Label>
+              <FieldLabel required>Nama</FieldLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Email</Label>
+              <FieldLabel required>Email</FieldLabel>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Password {editing && <span className="text-neutral-400">(kosongkan jika tidak diubah)</span>}</Label>
+              <FieldLabel required={!editing}>Password</FieldLabel>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="min. 8 karakter"
+                placeholder={editing ? "kosongkan jika tidak diubah" : "min. 8 karakter"}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Role</Label>
+              <FieldLabel required>Role</FieldLabel>
               <Select value={roleId} onValueChange={setRoleId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih role" />

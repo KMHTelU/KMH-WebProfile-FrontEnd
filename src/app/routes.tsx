@@ -12,6 +12,8 @@ import { BlogDetail } from "./pages/BlogDetail";
 import { Contact } from "./pages/Contact";
 import { NotFound } from "./pages/NotFound";
 import { Login } from "./pages/Login";
+import { ForgotPassword } from "./pages/ForgotPassword";
+import { ResetPassword } from "./pages/ResetPassword";
 import { RequireAuth } from "./admin/RequireAuth";
 import { AdminLayout } from "./admin/AdminLayout";
 import { Dashboard } from "./admin/pages/Dashboard";
@@ -47,6 +49,8 @@ export const router = createBrowserRouter([
     ],
   },
   { path: "/login", Component: Login },
+  { path: "/forgot-password", Component: ForgotPassword },
+  { path: "/reset-password", Component: ResetPassword },
   {
     path: "/admin",
     Component: RequireAuth,

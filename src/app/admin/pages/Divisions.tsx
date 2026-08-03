@@ -1,8 +1,10 @@
 import { useRef, useState } from "react";
-import { ImageUp, Pencil, Plus, Trash2 } from "lucide-react";
+import { FileUp, ImageUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ImportDialog } from "../components/ImportDialog";
+import { FieldLabel } from "../components/FieldLabel";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -46,6 +48,7 @@ export function AdminDivisions() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<Division | null>(null);
   const [toDelete, setToDelete] = useState<Division | null>(null);
   const [form, setForm] = useState({
@@ -132,9 +135,14 @@ export function AdminDivisions() {
         title="Divisi"
         description="Kelola divisi & koordinatornya"
         action={
-          <Button onClick={openCreate}>
-            <Plus size={16} /> Divisi Baru
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <FileUp size={16} /> Import
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus size={16} /> Divisi Baru
+            </Button>
+          </>
         }
       />
       <DataTable columns={columns} rows={divisions} isLoading={isLoading} rowKey={(d) => d.id} />
@@ -178,7 +186,7 @@ export function AdminDivisions() {
 
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label>Nama</Label>
+              <FieldLabel required>Nama</FieldLabel>
               <Input
                 value={form.name}
                 onChange={(e) => {
@@ -188,9 +196,10 @@ export function AdminDivisions() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Slug</Label>
+              <FieldLabel>Slug</FieldLabel>
               <Input
                 value={form.slug}
+                placeholder="otomatis dibuat dari nama"
                 onChange={(e) => {
                   set("slug", e.target.value);
                   setSlugTouched(true);
@@ -198,11 +207,11 @@ export function AdminDivisions() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Deskripsi</Label>
+              <FieldLabel>Deskripsi</FieldLabel>
               <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Koordinator</Label>
+              <FieldLabel>Koordinator</FieldLabel>
               <Select value={form.coordinator_id} onValueChange={(v) => set("coordinator_id", v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih koordinator" />
@@ -234,6 +243,13 @@ export function AdminDivisions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportDialog
+        entity="divisions"
+        entityLabel="Divisi"
+        open={importOpen}
+        onOpenChange={setImportOpen}
+      />
 
       <ConfirmDialog
         open={!!toDelete}
