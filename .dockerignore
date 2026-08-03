@@ -1,0 +1,27 @@
+node_modules
+dist
+coverage
+.vite
+
+.git
+.gitignore
+
+# Nilai VITE_* dikirim lewat build args, bukan lewat file .env, supaya hasil
+# build di VPS tidak bergantung pada file lokal yang tidak ikut ter-commit.
+.env
+.env.*
+
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+docs
+guidelines
+*.md
+
+.vscode
+.idea
+.cursor
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,30 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_ENABLE_STATIC_FALLBACK: ${VITE_ENABLE_STATIC_FALLBACK:-true}
+        VITE_ORG_PROFILE_ID: ${VITE_ORG_PROFILE_ID:-}
+        VITE_SHOW_ADMIN_LOGIN: ${VITE_SHOW_ADMIN_LOGIN:-false}
+        VITE_SITE_URL: ${VITE_SITE_URL:-}
+    image: kmh-frontend:latest
+    container_name: kmh-frontend
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-5173}:80"
+    environment:
+      # Tujuan proxy /api dan /docs. Jangan pakai trailing slash.
+      API_PROXY_TARGET: ${API_PROXY_TARGET:-https://kmh.leviathanbolu.my.id}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
