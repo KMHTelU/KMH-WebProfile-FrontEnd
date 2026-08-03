@@ -117,7 +117,19 @@ export function mapDivision(row: Row): Division {
     id: String(row.id),
     name: str(row.name),
     slug: str(row.slug),
+    subtitle: str(row.subtitle),
     description: str(row.description),
+    responsibilities: Array.isArray(row.responsibilities)
+      ? row.responsibilities.map((item: unknown) => String(item ?? "")).filter(Boolean)
+      : [],
+    programs: Array.isArray(row.programs)
+      ? row.programs
+          .map((p: Row) => ({
+            name: str(p?.name) ?? "",
+            description: str(p?.description) ?? "",
+          }))
+          .filter((p: { name: string }) => p.name)
+      : [],
     isActive: bool(row.is_active),
     icon: mapMedia(row),
     coordinator,

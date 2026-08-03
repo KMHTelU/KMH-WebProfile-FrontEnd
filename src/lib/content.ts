@@ -77,11 +77,12 @@ export function divisionToView(d: Division): DivisionView {
   return {
     id: d.slug || d.id,
     name: d.name || "",
-    shortDescription: d.description || "",
+    // Subtitle dipakai di hero; bila kosong jatuh ke deskripsi panjang.
+    shortDescription: d.subtitle || d.description || "",
     description: d.description || "",
     category: "Internal Division",
-    responsibilities: [],
-    programs: [],
+    responsibilities: d.responsibilities ?? [],
+    programs: d.programs ?? [],
     image: d.icon?.url || FALLBACK_IMG,
     members: d.coordinator
       ? [

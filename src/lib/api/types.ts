@@ -55,11 +55,19 @@ export interface Member {
   photo: Media | null;
 }
 
+export interface DivisionProgram {
+  name: string;
+  description: string;
+}
+
 export interface Division {
   id: string;
   name: string | null;
   slug: string | null;
+  subtitle: string | null;
   description: string | null;
+  responsibilities: string[];
+  programs: DivisionProgram[];
   isActive: boolean;
   icon: Media | null;
   coordinator: Member | null;
@@ -227,7 +235,10 @@ export interface GalleryPayload {
 export interface DivisionPayload {
   name: string;
   slug: string;
+  subtitle?: string;
   description?: string;
+  responsibilities?: string[];
+  programs?: DivisionProgram[];
   coordinator_id?: string;
 }
 

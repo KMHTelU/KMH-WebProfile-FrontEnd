@@ -105,10 +105,12 @@ export function DivisionDetail() {
               <p className="text-neutral-600 leading-relaxed">{division.description}</p>
             </section>
 
+            {/* Responsibilities (hanya tampil bila datanya ada) */}
+            {division.responsibilities.length > 0 && (
+              <>
             {/* Divider */}
             <div className="h-px bg-neutral-100" />
 
-            {/* Responsibilities */}
             <section>
               <div
                 className="inline-block text-xs tracking-widest uppercase text-amber-600 mb-3"
@@ -142,11 +144,15 @@ export function DivisionDetail() {
                 ))}
               </div>
             </section>
+              </>
+            )}
 
+            {/* Programs (hanya tampil bila datanya ada) */}
+            {division.programs.length > 0 && (
+              <>
             {/* Divider */}
             <div className="h-px bg-neutral-100" />
 
-            {/* Programs */}
             <section>
               <div
                 className="inline-block text-xs tracking-widest uppercase text-amber-600 mb-3"
@@ -190,6 +196,8 @@ export function DivisionDetail() {
                 ))}
               </div>
             </section>
+              </>
+            )}
 
             {/* Divider */}
             <div className="h-px bg-neutral-100" />

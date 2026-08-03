@@ -32,11 +32,29 @@ import {
   useUpdateDivision,
   useUploadDivisionIcon,
 } from "../../../lib/api/admin-hooks";
-import type { Division } from "../../../lib/api/types";
+import type { Division, DivisionProgram } from "../../../lib/api/types";
 
 const NONE = "__none__";
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+// Textarea daftar: satu butir per baris.
+const parseLines = (s: string) =>
+  s.split("\n").map((line) => line.trim()).filter(Boolean);
+
+// Textarea program: satu program per baris dengan format "Nama | Deskripsi".
+const parsePrograms = (s: string): DivisionProgram[] =>
+  parseLines(s)
+    .map((line) => {
+      const [name, ...rest] = line.split("|");
+      return { name: name.trim(), description: rest.join("|").trim() };
+    })
+    .filter((p) => p.name);
+
+const programsToText = (programs: DivisionProgram[]) =>
+  programs
+    .map((p) => (p.description ? `${p.name} | ${p.description}` : p.name))
+    .join("\n");
 
 export function AdminDivisions() {
   const { data: divisions = [], isLoading } = useDivisions();
@@ -51,19 +69,23 @@ export function AdminDivisions() {
   const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<Division | null>(null);
   const [toDelete, setToDelete] = useState<Division | null>(null);
-  const [form, setForm] = useState({
+  const emptyForm = {
     name: "",
     slug: "",
+    subtitle: "",
     description: "",
+    responsibilities: "",
+    programs: "",
     coordinator_id: NONE,
     is_active: true,
-  });
+  };
+  const [form, setForm] = useState(emptyForm);
   const [slugTouched, setSlugTouched] = useState(false);
   const set = (k: keyof typeof form, v: any) => setForm((f) => ({ ...f, [k]: v }));
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", slug: "", description: "", coordinator_id: NONE, is_active: true });
+    setForm(emptyForm);
     setSlugTouched(false);
     setOpen(true);
   };
@@ -72,7 +94,10 @@ export function AdminDivisions() {
     setForm({
       name: d.name || "",
       slug: d.slug || "",
+      subtitle: d.subtitle || "",
       description: d.description || "",
+      responsibilities: (d.responsibilities || []).join("\n"),
+      programs: programsToText(d.programs || []),
       coordinator_id: d.coordinator?.id || NONE,
       is_active: d.isActive,
     });
@@ -84,7 +109,10 @@ export function AdminDivisions() {
     const base = {
       name: form.name,
       slug: form.slug || slugify(form.name),
+      subtitle: form.subtitle || undefined,
       description: form.description || undefined,
+      responsibilities: parseLines(form.responsibilities),
+      programs: parsePrograms(form.programs),
       coordinator_id: form.coordinator_id === NONE ? undefined : form.coordinator_id,
     };
     if (editing) {
@@ -207,8 +235,34 @@ export function AdminDivisions() {
               />
             </div>
             <div className="space-y-1.5">
+              <FieldLabel>Subtitle</FieldLabel>
+              <Input
+                value={form.subtitle}
+                placeholder="kalimat singkat untuk hero halaman divisi"
+                onChange={(e) => set("subtitle", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
               <FieldLabel>Deskripsi</FieldLabel>
               <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <FieldLabel>Tanggung Jawab</FieldLabel>
+              <Textarea
+                value={form.responsibilities}
+                placeholder={"Satu tanggung jawab per baris, misal:\nMengelola media sosial KMH\nMembuat konten publikasi kegiatan"}
+                rows={4}
+                onChange={(e) => set("responsibilities", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <FieldLabel>Program Kerja</FieldLabel>
+              <Textarea
+                value={form.programs}
+                placeholder={"Satu program per baris dengan format Nama | Deskripsi, misal:\nKMH Podcast | Podcast bulanan seputar kegiatan KMH"}
+                rows={4}
+                onChange={(e) => set("programs", e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <FieldLabel>Koordinator</FieldLabel>
