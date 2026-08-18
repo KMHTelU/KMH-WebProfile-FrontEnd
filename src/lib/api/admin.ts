@@ -16,6 +16,7 @@ import {
   mapContactMessage,
   mapEvent,
   mapGallery,
+  mapHallOfFame,
   mapMember,
   mapMemberDivision,
   mapRole,
@@ -39,6 +40,11 @@ import type {
   Gallery,
   GalleryItemPayload,
   GalleryPayload,
+  HallOfFame,
+  HofAchievementPayload,
+  HofGenerationPayload,
+  HofPersonPayload,
+  HofTimelinePayload,
   Media,
   MemberDivision,
   MemberDivisionPayload,
@@ -361,6 +367,65 @@ export async function deleteGalleryItem(
   itemId: string
 ): Promise<void> {
   await apiDelete<null>(`${P}/galleries/${galleryId}/items/${itemId}`);
+}
+
+// ── Hall of Fame (arsip museum 3D) ──
+// Read memakai endpoint publik (satu tembakan); mutasi lewat /protected.
+export async function getHallOfFame(): Promise<HallOfFame> {
+  const data = await apiGet<Record<string, any>>("/hall-of-fame");
+  return mapHallOfFame(data ?? {});
+}
+
+export async function createHofGeneration(payload: HofGenerationPayload): Promise<void> {
+  await apiPost<null>(`${P}/hall-of-fame/generations`, payload);
+}
+export async function updateHofGeneration(
+  id: string,
+  payload: HofGenerationPayload
+): Promise<void> {
+  await apiPut<null>(`${P}/hall-of-fame/generations/${id}`, payload);
+}
+export async function deleteHofGeneration(id: string): Promise<void> {
+  await apiDelete<null>(`${P}/hall-of-fame/generations/${id}`);
+}
+
+export async function createHofPerson(payload: HofPersonPayload): Promise<void> {
+  await apiPost<null>(`${P}/hall-of-fame/people`, payload);
+}
+export async function updateHofPerson(
+  id: string,
+  payload: HofPersonPayload
+): Promise<void> {
+  await apiPut<null>(`${P}/hall-of-fame/people/${id}`, payload);
+}
+export async function deleteHofPerson(id: string): Promise<void> {
+  await apiDelete<null>(`${P}/hall-of-fame/people/${id}`);
+}
+
+export async function createHofAchievement(payload: HofAchievementPayload): Promise<void> {
+  await apiPost<null>(`${P}/hall-of-fame/achievements`, payload);
+}
+export async function updateHofAchievement(
+  id: string,
+  payload: HofAchievementPayload
+): Promise<void> {
+  await apiPut<null>(`${P}/hall-of-fame/achievements/${id}`, payload);
+}
+export async function deleteHofAchievement(id: string): Promise<void> {
+  await apiDelete<null>(`${P}/hall-of-fame/achievements/${id}`);
+}
+
+export async function createHofTimelineEvent(payload: HofTimelinePayload): Promise<void> {
+  await apiPost<null>(`${P}/hall-of-fame/timeline`, payload);
+}
+export async function updateHofTimelineEvent(
+  id: string,
+  payload: HofTimelinePayload
+): Promise<void> {
+  await apiPut<null>(`${P}/hall-of-fame/timeline/${id}`, payload);
+}
+export async function deleteHofTimelineEvent(id: string): Promise<void> {
+  await apiDelete<null>(`${P}/hall-of-fame/timeline/${id}`);
 }
 
 // ── Organization Profile ──

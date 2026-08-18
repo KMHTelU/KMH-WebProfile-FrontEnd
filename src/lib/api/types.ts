@@ -59,6 +59,114 @@ export interface Member {
   photo: Media | null;
 }
 
+// ── Hall of Fame (arsip museum 3D) ──
+
+export type HofCategory =
+  | "Academic"
+  | "Competition"
+  | "Leadership"
+  | "Community Service"
+  | "Arts & Culture"
+  | "Technology"
+  | "Entrepreneurship"
+  | "Sports"
+  | "Other";
+
+export interface HofGeneration {
+  id: string;
+  name: string;
+  yearStart: number;
+  yearEnd: number;
+  description: string;
+  milestones: string[];
+  accent: string;
+  sortOrder: number;
+}
+
+export interface HofPerson {
+  id: string;
+  generationId: string;
+  name: string;
+  role: string;
+  studyProgram: string;
+  biography: string;
+  contributions: string;
+  legacy: string;
+  quote: string;
+  fields: string[];
+  photoMediaId: string | null;
+  photoUrl: string | null;
+  sortOrder: number;
+}
+
+export interface HofAchievement {
+  id: string;
+  personId: string;
+  title: string;
+  category: string;
+  year: number;
+  organization: string;
+  result: string;
+  description: string;
+}
+
+export interface HofTimelineEvent {
+  id: string;
+  year: string;
+  title: string;
+  description: string;
+  sortOrder: number;
+}
+
+export interface HallOfFame {
+  generations: HofGeneration[];
+  people: HofPerson[];
+  achievements: HofAchievement[];
+  timeline: HofTimelineEvent[];
+}
+
+// Payload CRUD HOF (snake_case sesuai kontrak backend).
+export interface HofGenerationPayload {
+  name: string;
+  year_start: number;
+  year_end: number;
+  description?: string;
+  milestones?: string[];
+  accent?: string;
+  sort_order?: number;
+}
+
+export interface HofPersonPayload {
+  generation_id: string;
+  name: string;
+  role?: string;
+  study_program?: string;
+  biography?: string;
+  contributions?: string;
+  legacy?: string;
+  quote?: string;
+  fields?: string[];
+  photo_media_id?: string;
+  sort_order?: number;
+}
+
+export interface HofAchievementPayload {
+  person_id: string;
+  title: string;
+  category?: string;
+  year: number;
+  organization?: string;
+  result?: string;
+  description?: string;
+}
+
+export interface HofTimelinePayload {
+  year_label: string;
+  title: string;
+  description?: string;
+  sort_order?: number;
+}
+
 // ── Organization tree (GET /organization-tree) ──
 
 /** Orang yang tampil di struktur organisasi (foto = foto member yang sudah ada). */

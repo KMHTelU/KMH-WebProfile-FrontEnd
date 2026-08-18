@@ -15,6 +15,12 @@ export const AUTH_STORAGE_KEY = "kmh.auth";
 export const ORG_PROFILE_ID: string =
   import.meta.env.VITE_ORG_PROFILE_ID?.trim() || "";
 
+// URL aplikasi Hall of Fame (museum 3D) — aplikasi terpisah, dibuka di tab
+// baru. Default mengasumsikan deploy di subpath /hall-of-fame/ pada domain
+// yang sama; untuk dev lokal set VITE_HALL_OF_FAME_URL=http://localhost:5173.
+export const HALL_OF_FAME_URL: string =
+  import.meta.env.VITE_HALL_OF_FAME_URL?.trim() || "/hall-of-fame/";
+
 // Tampilkan entri "Login" admin di Navbar?
 // Default false — sengaja disembunyikan (masih didiskusikan). Untuk memunculkan:
 // set VITE_SHOW_ADMIN_LOGIN=true, atau hapus className "hidden" pada elemen

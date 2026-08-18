@@ -29,6 +29,7 @@ import { AdminOrgProfile } from "./admin/pages/OrgProfile";
 import { AdminContactMessages } from "./admin/pages/ContactMessages";
 import { AdminUsers } from "./admin/pages/Users";
 import { AdminRoles } from "./admin/pages/Roles";
+import { AdminHallOfFame } from "./admin/pages/HallOfFame";
 
 export const router = createBrowserRouter([
   {
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
           { path: "blog-taxonomy", Component: AdminBlogTaxonomy },
           { path: "galleries", Component: AdminGalleries },
           { path: "organization", Component: AdminOrgProfile },
+          { path: "hall-of-fame", Component: AdminHallOfFame },
           { path: "contact-messages", Component: AdminContactMessages },
           { path: "users", Component: AdminUsers },
           { path: "roles", Component: AdminRoles },

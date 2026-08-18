@@ -1,5 +1,6 @@
 import { Link } from "react-router";
-import { ArrowRight, Calendar, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowRight, Calendar, ChevronRight, Landmark, Sparkles } from "lucide-react";
+import { HALL_OF_FAME_URL } from "../../lib/config";
 import kmhLogo from "../../assets/KMH.png";
 import { SmartImage } from "../components/common/SmartImage";
 import { Aurora, BlurText, CountUp, GradientText, Reveal } from "../components/common/motion";
@@ -227,6 +228,61 @@ export function Home() {
 
           <OrganizationTree />
         </div>
+      </section>
+
+      {/* ── Hall of Fame CTA (museum 3D, aplikasi terpisah — tab baru) ── */}
+      <section className="relative py-24 px-6 bg-neutral-950 overflow-hidden">
+        {/* Glow emas lembut */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 70% at 50% 100%, rgba(212,175,55,0.12), transparent 70%)",
+          }}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.04] pointer-events-none" />
+
+        <Reveal as="div" className="relative max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 text-xs tracking-[0.3em] uppercase text-amber-500 mb-4 font-semibold">
+            <Landmark size={14} /> KMH Hall of Fame
+          </div>
+          <h2
+            className="text-white mb-4"
+            style={{
+              fontSize: "clamp(1.8rem, 4vw, 2.6rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Berjalanlah Menembus Sejarah KMH
+          </h2>
+          <p className="text-neutral-400 leading-relaxed mb-3 max-w-xl mx-auto">
+            Museum digital 3D interaktif: susuri koridor generasi demi generasi,
+            temui para tokoh, saksikan prestasi mereka, dan lihat bagaimana satu
+            generasi mewariskan tongkatnya ke generasi berikutnya.
+          </p>
+          <p
+            className="text-amber-200/70 italic mb-10"
+            style={{ fontFamily: "Georgia, serif" }}
+          >
+            “People build generations. Generations build legacies.”
+          </p>
+          <a
+            href={HALL_OF_FAME_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-sm text-neutral-950 transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
+            style={{
+              background: "linear-gradient(135deg, #f0d97a 0%, #d4af37 55%, #b8863b 100%)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              boxShadow: "0 4px 30px rgba(212,175,55,0.35)",
+            }}
+          >
+            MASUK MUSEUM <ArrowRight size={16} />
+          </a>
+          <p className="text-neutral-600 text-xs mt-4">Dibuka di tab baru</p>
+        </Reveal>
       </section>
 
       {/* ── Events Preview ── */}

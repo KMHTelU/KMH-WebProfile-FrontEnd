@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import kmhLogo from "../../assets/KMH.png";
-import { Instagram, Mail, MapPin } from "lucide-react";
+import { ExternalLink, Instagram, Mail, MapPin } from "lucide-react";
+import { HALL_OF_FAME_URL } from "../../lib/config";
 
 export function Footer() {
   return (
@@ -71,6 +72,16 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <a
+                  href={HALL_OF_FAME_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-amber-500/80 hover:text-amber-400 transition-colors duration-150 inline-flex items-center gap-1.5"
+                >
+                  Hall of Fame <ExternalLink size={11} />
+                </a>
+              </li>
             </ul>
           </div>
 

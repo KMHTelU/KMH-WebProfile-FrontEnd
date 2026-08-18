@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router";
 import kmhLogo from "../../assets/KMH.png";
-import { Menu, X, Lock } from "lucide-react";
-import { SHOW_ADMIN_LOGIN_LINK } from "../../lib/config";
+import { Menu, X, Lock, Landmark } from "lucide-react";
+import { SHOW_ADMIN_LOGIN_LINK, HALL_OF_FAME_URL } from "../../lib/config";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -99,6 +99,20 @@ export function Navbar() {
                 )}
               </Link>
             ))}
+            {/* Museum 3D — aplikasi terpisah, dibuka di tab baru */}
+            <a
+              href={HALL_OF_FAME_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-full transition-colors duration-200 ${
+                onDark
+                  ? "text-amber-300/90 hover:text-amber-200"
+                  : "text-amber-700 hover:text-amber-800"
+              }`}
+              style={{ fontWeight: 500 }}
+            >
+              <Landmark size={14} /> Hall of Fame
+            </a>
           </div>
 
           {/* CTA + Mobile */}
@@ -165,6 +179,15 @@ export function Navbar() {
               {link.label}
             </Link>
           ))}
+          <a
+            href={HALL_OF_FAME_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-3 rounded-xl text-sm text-amber-700 hover:bg-amber-50 transition-colors duration-150 inline-flex items-center gap-2"
+            style={{ fontWeight: 500 }}
+          >
+            <Landmark size={15} /> Hall of Fame
+          </a>
           <Link
             to="/contact"
             className="mt-2 px-4 py-3 rounded-xl text-sm text-center text-white transition-all duration-200"

@@ -16,6 +16,7 @@ import {
   Newspaper,
   Shield,
   Tags,
+  Trophy,
   Users,
   UsersRound,
 } from "lucide-react";
@@ -67,6 +68,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { to: "/admin/divisions", label: "Divisi", icon: Boxes },
       { to: "/admin/members", label: "Anggota", icon: UsersRound },
+      { to: "/admin/hall-of-fame", label: "Hall of Fame", icon: Trophy },
       { to: "/admin/organization", label: "Profil Organisasi", icon: Building2 },
       { to: "/admin/contact-messages", label: "Pesan Kontak", icon: Mail },
     ],

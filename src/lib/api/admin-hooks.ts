@@ -254,6 +254,80 @@ export const useDeleteGalleryItem = () =>
     { successMessage: "Media dihapus", invalidate: [["galleries"]] }
   );
 
+// ── Hall of Fame ──
+export const useHallOfFame = () =>
+  useQuery({ queryKey: ["hall-of-fame"], queryFn: admin.getHallOfFame });
+
+const HOF_KEYS: string[][] = [["hall-of-fame"]];
+
+export const useCreateHofGeneration = () =>
+  useAdminMutation(admin.createHofGeneration, {
+    successMessage: "Generasi dibuat",
+    invalidate: HOF_KEYS,
+  });
+export const useUpdateHofGeneration = () =>
+  useAdminMutation(
+    (args: { id: string; payload: Parameters<typeof admin.updateHofGeneration>[1] }) =>
+      admin.updateHofGeneration(args.id, args.payload),
+    { successMessage: "Generasi diperbarui", invalidate: HOF_KEYS }
+  );
+export const useDeleteHofGeneration = () =>
+  useAdminMutation((id: string) => admin.deleteHofGeneration(id), {
+    successMessage: "Generasi dihapus (beserta tokoh & prestasinya)",
+    invalidate: HOF_KEYS,
+  });
+
+export const useCreateHofPerson = () =>
+  useAdminMutation(admin.createHofPerson, {
+    successMessage: "Tokoh dibuat",
+    invalidate: HOF_KEYS,
+  });
+export const useUpdateHofPerson = () =>
+  useAdminMutation(
+    (args: { id: string; payload: Parameters<typeof admin.updateHofPerson>[1] }) =>
+      admin.updateHofPerson(args.id, args.payload),
+    { successMessage: "Tokoh diperbarui", invalidate: HOF_KEYS }
+  );
+export const useDeleteHofPerson = () =>
+  useAdminMutation((id: string) => admin.deleteHofPerson(id), {
+    successMessage: "Tokoh dihapus (beserta prestasinya)",
+    invalidate: HOF_KEYS,
+  });
+
+export const useCreateHofAchievement = () =>
+  useAdminMutation(admin.createHofAchievement, {
+    successMessage: "Prestasi dicatat",
+    invalidate: HOF_KEYS,
+  });
+export const useUpdateHofAchievement = () =>
+  useAdminMutation(
+    (args: { id: string; payload: Parameters<typeof admin.updateHofAchievement>[1] }) =>
+      admin.updateHofAchievement(args.id, args.payload),
+    { successMessage: "Prestasi diperbarui", invalidate: HOF_KEYS }
+  );
+export const useDeleteHofAchievement = () =>
+  useAdminMutation((id: string) => admin.deleteHofAchievement(id), {
+    successMessage: "Prestasi dihapus",
+    invalidate: HOF_KEYS,
+  });
+
+export const useCreateHofTimelineEvent = () =>
+  useAdminMutation(admin.createHofTimelineEvent, {
+    successMessage: "Peristiwa timeline dibuat",
+    invalidate: HOF_KEYS,
+  });
+export const useUpdateHofTimelineEvent = () =>
+  useAdminMutation(
+    (args: { id: string; payload: Parameters<typeof admin.updateHofTimelineEvent>[1] }) =>
+      admin.updateHofTimelineEvent(args.id, args.payload),
+    { successMessage: "Peristiwa timeline diperbarui", invalidate: HOF_KEYS }
+  );
+export const useDeleteHofTimelineEvent = () =>
+  useAdminMutation((id: string) => admin.deleteHofTimelineEvent(id), {
+    successMessage: "Peristiwa timeline dihapus",
+    invalidate: HOF_KEYS,
+  });
+
 // ── Organization Profile ──
 export const useCreateOrgProfile = () =>
   useAdminMutation(admin.createOrgProfile, {

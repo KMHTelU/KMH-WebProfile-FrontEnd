@@ -10,6 +10,7 @@ import type {
   Gallery,
   GalleryDetail,
   GalleryItem,
+  HallOfFame,
   Media,
   Member,
   MemberDivision,
@@ -83,6 +84,58 @@ export function mapEvent(row: Row): EventItem {
     divisionId: str(src.division_id),
     divisionName: str(src.division_name),
     divisionSlug: str(src.division_slug),
+  };
+}
+
+// Respons GET /hall-of-fame: { generations, people, achievements, timeline }.
+export function mapHallOfFame(data: Row | null | undefined): HallOfFame {
+  const arr = (v: unknown): Row[] => (Array.isArray(v) ? v : []);
+  const strs = (v: unknown): string[] =>
+    Array.isArray(v) ? v.map((x) => String(x ?? "")).filter(Boolean) : [];
+
+  return {
+    generations: arr(data?.generations).map((g) => ({
+      id: String(g.id),
+      name: str(g.name) ?? "",
+      yearStart: num(g.year_start) ?? 0,
+      yearEnd: num(g.year_end) ?? 0,
+      description: str(g.description) ?? "",
+      milestones: strs(g.milestones),
+      accent: str(g.accent) ?? "",
+      sortOrder: num(g.sort_order) ?? 0,
+    })),
+    people: arr(data?.people).map((p) => ({
+      id: String(p.id),
+      generationId: str(p.generation_id) ?? "",
+      name: str(p.name) ?? "",
+      role: str(p.role) ?? "",
+      studyProgram: str(p.study_program) ?? "",
+      biography: str(p.biography) ?? "",
+      contributions: str(p.contributions) ?? "",
+      legacy: str(p.legacy) ?? "",
+      quote: str(p.quote) ?? "",
+      fields: strs(p.fields),
+      photoMediaId: str(p.photo_media_id),
+      photoUrl: str(p.photo_url),
+      sortOrder: num(p.sort_order) ?? 0,
+    })),
+    achievements: arr(data?.achievements).map((a) => ({
+      id: String(a.id),
+      personId: str(a.person_id) ?? "",
+      title: str(a.title) ?? "",
+      category: str(a.category) ?? "Other",
+      year: num(a.year) ?? 0,
+      organization: str(a.organization) ?? "",
+      result: str(a.result) ?? "",
+      description: str(a.description) ?? "",
+    })),
+    timeline: arr(data?.timeline).map((t) => ({
+      id: String(t.id),
+      year: str(t.year) ?? "",
+      title: str(t.title) ?? "",
+      description: str(t.description) ?? "",
+      sortOrder: num(t.sort_order) ?? 0,
+    })),
   };
 }
 
