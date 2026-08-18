@@ -29,16 +29,139 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import {
   useAdminMembers,
+  useAssignMemberDivision,
   useBulkUpdateMembers,
   useCreateMember,
   useDeleteMember,
+  useMemberDivisions,
+  useRemoveMemberDivision,
   useUpdateMember,
   useUploadMemberPhoto,
 } from "../../../lib/api/admin-hooks";
+import { useDivisions } from "../../../lib/api/hooks";
 import type { Member } from "../../../lib/api/types";
 
 const currentYear = new Date().getFullYear();
+
+// Bagian pengelolaan divisi pada dialog edit anggota. Dibuat sesederhana
+// mungkin untuk admin non-teknis: pilih divisi, isi jabatan, klik Tautkan.
+function MemberDivisionsSection({ member }: { member: Member }) {
+  const { data: assignments = [], isLoading } = useMemberDivisions(member.id);
+  const { data: divisions = [] } = useDivisions();
+  const assignM = useAssignMemberDivision();
+  const removeM = useRemoveMemberDivision();
+
+  const [divisionId, setDivisionId] = useState("");
+  const [roleTitle, setRoleTitle] = useState("");
+
+  // Divisi yang sudah ditautkan tidak ditawarkan lagi agar tidak dobel.
+  const assignedIds = new Set(assignments.map((a) => a.divisionId));
+  const available = divisions.filter((d) => !assignedIds.has(d.id));
+
+  const add = async () => {
+    if (!divisionId) return;
+    await assignM.mutateAsync({
+      member_id: member.id,
+      division_id: divisionId,
+      role_title: roleTitle.trim() || undefined,
+    });
+    setDivisionId("");
+    setRoleTitle("");
+  };
+
+  return (
+    <div className="col-span-2 space-y-2 rounded-lg border border-neutral-200 p-3">
+      <div>
+        <Label>Divisi &amp; Jabatan</Label>
+        <p className="text-xs text-neutral-500 mt-0.5">
+          Tautkan anggota ini ke satu atau beberapa divisi. Jabatan bebas diisi,
+          misalnya Ketua, Wakil, atau Staff.
+        </p>
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-neutral-400">Memuat divisi…</p>
+      ) : assignments.length === 0 ? (
+        <p className="text-sm text-neutral-400">
+          Belum tergabung di divisi mana pun.
+        </p>
+      ) : (
+        <ul className="space-y-1.5">
+          {assignments.map((a) => (
+            <li
+              key={a.id}
+              className="flex items-center justify-between gap-2 rounded-md bg-neutral-50 px-3 py-2"
+            >
+              <div className="min-w-0">
+                <p className="text-sm text-neutral-800 truncate">
+                  {a.divisionName || "Divisi tanpa nama"}
+                </p>
+                <p className="text-xs text-neutral-500">
+                  {a.roleTitle || "Anggota"}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                title="Lepas dari divisi ini"
+                disabled={removeM.isPending}
+                onClick={() => removeM.mutate(a.id)}
+              >
+                <Trash2 size={14} className="text-red-500" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {available.length > 0 ? (
+        <div className="flex flex-col sm:flex-row gap-2 pt-1">
+          <Select value={divisionId} onValueChange={setDivisionId}>
+            <SelectTrigger className="sm:flex-1">
+              <SelectValue placeholder="Pilih divisi…" />
+            </SelectTrigger>
+            <SelectContent>
+              {available.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name || "Divisi tanpa nama"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            className="sm:flex-1"
+            value={roleTitle}
+            onChange={(e) => setRoleTitle(e.target.value)}
+            placeholder="Jabatan (opsional), cth: Ketua"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!divisionId || assignM.isPending}
+            onClick={add}
+          >
+            <Plus size={15} /> Tautkan
+          </Button>
+        </div>
+      ) : (
+        assignments.length > 0 && (
+          <p className="text-xs text-neutral-400">
+            Semua divisi sudah ditautkan ke anggota ini.
+          </p>
+        )
+      )}
+    </div>
+  );
+}
 
 export function AdminMembers() {
   const { data: members = [], isLoading } = useAdminMembers({ limit: 200 });
@@ -327,6 +450,14 @@ export function AdminMembers() {
               <FieldLabel>Bio</FieldLabel>
               <Textarea value={form.bio} onChange={(e) => set("bio", e.target.value)} />
             </div>
+            {editing ? (
+              <MemberDivisionsSection member={editing} />
+            ) : (
+              <p className="col-span-2 text-xs text-neutral-500 rounded-lg bg-neutral-50 px-3 py-2">
+                Setelah anggota disimpan, buka kembali lewat tombol edit untuk
+                menautkannya ke divisi.
+              </p>
+            )}
             {editing && (
               <div className="flex items-center justify-between col-span-2">
                 <Label>Aktif</Label>

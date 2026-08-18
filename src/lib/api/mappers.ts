@@ -12,6 +12,7 @@ import type {
   GalleryItem,
   Media,
   Member,
+  MemberDivision,
   OrganizationProfile,
   Role,
 } from "./types";
@@ -76,6 +77,22 @@ export function mapEvent(row: Row): EventItem {
     status: str(src.status),
     isPublished: bool(src.is_published),
     cover: mapMedia(src),
+    divisionId: str(src.division_id),
+    divisionName: str(src.division_name),
+    divisionSlug: str(src.division_slug),
+  };
+}
+
+// Row hasil GET /members/:id/divisions: kolom member_divisions + join divisions
+// (id divisi berada di id_2, nama/slug divisi di name/slug).
+export function mapMemberDivision(row: Row): MemberDivision {
+  return {
+    id: String(row.id),
+    memberId: str(row.member_id),
+    divisionId: str(row.division_id ?? row.id_2),
+    roleTitle: str(row.role_title),
+    divisionName: str(row.name),
+    divisionSlug: str(row.slug),
   };
 }
 

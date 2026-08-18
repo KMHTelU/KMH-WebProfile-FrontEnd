@@ -17,6 +17,7 @@ import {
   mapEvent,
   mapGallery,
   mapMember,
+  mapMemberDivision,
   mapRole,
   mapUser,
 } from "./mappers";
@@ -39,6 +40,8 @@ import type {
   GalleryItemPayload,
   GalleryPayload,
   Media,
+  MemberDivision,
+  MemberDivisionPayload,
   MemberPayload,
   MemberUpdatePayload,
   NameSlugPayload,
@@ -184,21 +187,24 @@ export async function getAdminBanners(params?: ListParams): Promise<Banner[]> {
   return asArray(data).map(mapBanner);
 }
 
+// Field teks dikirim dengan nama datar (bukan "data.title" dst.) karena decoder
+// form backend memperlakukan titik sebagai path struct bersarang, sehingga field
+// berprefix tidak pernah terisi dan banner selalu gagal dibuat.
 export async function createBanner(
   file: File,
   data: BannerFormPayload
 ): Promise<void> {
   const form = new FormData();
   form.append("media", file);
-  form.append("data.title", data.title);
-  if (data.subtitle) form.append("data.subtitle", data.subtitle);
-  if (data.cta_text) form.append("data.cta_text", data.cta_text);
-  if (data.cta_url) form.append("data.cta_url", data.cta_url);
-  form.append("data.is_active", String(data.is_active));
-  form.append("data.start_date", data.start_date);
-  form.append("data.end_date", data.end_date);
-  if (data.alt_text) form.append("data.alt_text", data.alt_text);
-  if (data.caption) form.append("data.caption", data.caption);
+  form.append("title", data.title);
+  if (data.subtitle) form.append("subtitle", data.subtitle);
+  if (data.cta_text) form.append("cta_text", data.cta_text);
+  if (data.cta_url) form.append("cta_url", data.cta_url);
+  form.append("is_active", String(data.is_active));
+  form.append("start_date", data.start_date);
+  form.append("end_date", data.end_date);
+  if (data.alt_text) form.append("alt_text", data.alt_text);
+  if (data.caption) form.append("caption", data.caption);
   await apiPost<null>(`${P}/homepage-banners`, form, multipart);
 }
 
@@ -246,6 +252,29 @@ export async function uploadMemberPhoto(id: string, file: File): Promise<void> {
   const form = new FormData();
   form.append("photo", file);
   await apiPost<null>(`${P}/members/${id}/upload`, form, multipart);
+}
+
+// ── Member ↔ Division (penugasan anggota ke divisi) ──
+// Daftar divisinya dibaca dari endpoint publik; mutasinya lewat /protected.
+export async function getMemberDivisions(
+  memberId: string
+): Promise<MemberDivision[]> {
+  const data = await apiGet<unknown>(`/members/${memberId}/divisions`);
+  return asArray(data).map(mapMemberDivision);
+}
+export async function assignMemberDivision(
+  payload: MemberDivisionPayload
+): Promise<void> {
+  await apiPost<null>(`${P}/member-divisions`, payload);
+}
+export async function updateMemberDivision(
+  id: string,
+  payload: MemberDivisionPayload
+): Promise<void> {
+  await apiPut<null>(`${P}/member-divisions/${id}`, payload);
+}
+export async function removeMemberDivision(id: string): Promise<void> {
+  await apiDelete<null>(`${P}/member-divisions/${id}`);
 }
 
 // ── Events ──

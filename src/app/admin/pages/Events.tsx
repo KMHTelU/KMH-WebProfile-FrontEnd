@@ -34,7 +34,12 @@ import {
   useDeleteEvent,
   useUpdateEvent,
 } from "../../../lib/api/admin-hooks";
+import { useDivisions } from "../../../lib/api/hooks";
 import type { EventItem, EventPayload } from "../../../lib/api/types";
+
+// Radix Select tidak menerima value string kosong, jadi "tanpa divisi"
+// diwakili sentinel ini lalu dipetakan kembali ke undefined saat submit.
+const NO_DIVISION = "none";
 
 // Backend mewajibkan title/slug/start_time pada update, jadi item bulk
 // dibangun dari data event yang sudah dimuat.
@@ -52,6 +57,7 @@ function toFullPayload(e: EventItem): EventPayload {
     cover_media_id: e.cover?.id ?? undefined,
     status: e.status ?? undefined,
     is_published: e.isPublished,
+    division_id: e.divisionId ?? undefined,
   };
 }
 
@@ -89,10 +95,12 @@ const emptyForm = {
   cover_url: "",
   status: "upcoming",
   is_published: false,
+  division_id: NO_DIVISION,
 };
 
 export function AdminEvents() {
   const { data: events = [], isLoading } = useAdminEvents({ limit: 200 });
+  const { data: divisions = [] } = useDivisions();
   const createM = useCreateEvent();
   const updateM = useUpdateEvent();
   const deleteM = useDeleteEvent();
@@ -137,6 +145,7 @@ export function AdminEvents() {
       cover_url: e.cover?.url || "",
       status: e.status || "upcoming",
       is_published: e.isPublished,
+      division_id: e.divisionId || NO_DIVISION,
     });
     setSlugTouched(true);
     setOpen(true);
@@ -156,6 +165,10 @@ export function AdminEvents() {
       cover_media_id: form.cover_media_id || undefined,
       status: form.status,
       is_published: form.is_published,
+      division_id:
+        form.division_id && form.division_id !== NO_DIVISION
+          ? form.division_id
+          : undefined,
     };
     if (editing) await updateM.mutateAsync({ id: editing.id, payload });
     else await createM.mutateAsync(payload);
@@ -171,6 +184,11 @@ export function AdminEvents() {
         e.startTime ? new Date(e.startTime).toLocaleDateString("id-ID") : "—",
     },
     { key: "status", header: "Status", cell: (e) => e.status || "—" },
+    {
+      key: "division",
+      header: "Divisi",
+      cell: (e) => e.divisionName || "—",
+    },
     {
       key: "published",
       header: "Publik",
@@ -324,6 +342,26 @@ export function AdminEvents() {
             <div className="space-y-1.5">
               <FieldLabel>URL Registrasi</FieldLabel>
               <Input value={form.registration_url} onChange={(e) => set("registration_url", e.target.value)} />
+            </div>
+            <div className="space-y-1.5 col-span-2">
+              <FieldLabel>Divisi Penyelenggara</FieldLabel>
+              <Select value={form.division_id} onValueChange={(v) => set("division_id", v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih divisi penanggung jawab…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_DIVISION}>Tanpa divisi (acara umum)</SelectItem>
+                  {divisions.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name || "Divisi tanpa nama"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-neutral-500">
+                Divisi yang bertanggung jawab atas event ini. Akan tampil di
+                halaman detail event sebagai penyelenggara.
+              </p>
             </div>
             <div className="space-y-1.5 col-span-2">
               <FieldLabel>Deskripsi</FieldLabel>

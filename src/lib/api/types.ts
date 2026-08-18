@@ -39,6 +39,10 @@ export interface EventItem {
   status: EventStatus | null;
   isPublished: boolean;
   cover: Media | null;
+  /** Divisi penyelenggara/penanggung jawab event (opsional). */
+  divisionId: string | null;
+  divisionName: string | null;
+  divisionSlug: string | null;
 }
 
 export interface Member {
@@ -53,6 +57,17 @@ export interface Member {
   periodEnd: number | null;
   isActive: boolean;
   photo: Media | null;
+}
+
+/** Satu penugasan anggota ke divisi (baris tabel member_divisions + info divisinya). */
+export interface MemberDivision {
+  /** ID baris penugasan (dipakai untuk update/hapus). */
+  id: string;
+  memberId: string | null;
+  divisionId: string | null;
+  roleTitle: string | null;
+  divisionName: string | null;
+  divisionSlug: string | null;
 }
 
 export interface DivisionProgram {
@@ -212,6 +227,7 @@ export interface EventPayload {
   cover_media_id?: string;
   status?: string;
   is_published?: boolean;
+  division_id?: string;
 }
 
 export interface BlogPostPayload {
@@ -309,6 +325,13 @@ export interface DivisionUpdatePayload extends Partial<DivisionPayload> {
 export interface GalleryItemPayload {
   media_id: string;
   sort_order?: number;
+}
+
+// Penugasan anggota ke divisi (POST /protected/member-divisions).
+export interface MemberDivisionPayload {
+  member_id: string;
+  division_id: string;
+  role_title?: string;
 }
 
 // ── Bulk & Import (kontrak backend /bulk dan /import/:entity) ──

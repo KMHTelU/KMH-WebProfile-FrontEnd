@@ -107,7 +107,9 @@ export function eventToView(e: EventItem): EventView {
     endISO: e.endTime,
     location: e.location || "",
     description: e.description || "",
-    divisionId: "",
+    // DivisionView.id memakai slug (fallback id), jadi slug divisi didahulukan
+    // agar pencocokan di halaman detail event berhasil.
+    divisionId: e.divisionSlug || e.divisionId || "",
     image: e.cover?.url || FALLBACK_IMG,
     gallery: [],
   };

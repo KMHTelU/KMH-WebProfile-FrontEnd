@@ -125,6 +125,33 @@ export const useUploadMemberPhoto = () =>
     { successMessage: "Foto anggota diunggah", invalidate: [["members"]] }
   );
 
+// ── Member ↔ Division (penugasan anggota ke divisi) ──
+export const useMemberDivisions = (memberId: string) =>
+  useQuery({
+    queryKey: ["member-divisions", memberId],
+    queryFn: () => admin.getMemberDivisions(memberId),
+    enabled: !!memberId,
+  });
+export const useAssignMemberDivision = () =>
+  useAdminMutation(admin.assignMemberDivision, {
+    successMessage: "Anggota ditautkan ke divisi",
+    invalidate: [["member-divisions"], ["members"], ["divisions"]],
+  });
+export const useUpdateMemberDivision = () =>
+  useAdminMutation(
+    (args: { id: string; payload: Parameters<typeof admin.updateMemberDivision>[1] }) =>
+      admin.updateMemberDivision(args.id, args.payload),
+    {
+      successMessage: "Penugasan divisi diperbarui",
+      invalidate: [["member-divisions"], ["members"], ["divisions"]],
+    }
+  );
+export const useRemoveMemberDivision = () =>
+  useAdminMutation((id: string) => admin.removeMemberDivision(id), {
+    successMessage: "Anggota dilepas dari divisi",
+    invalidate: [["member-divisions"], ["members"], ["divisions"]],
+  });
+
 // ── Events ──
 export const useCreateEvent = () =>
   useAdminMutation(admin.createEvent, {
