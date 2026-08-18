@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { FileUp, ImageUp, Pencil, Plus, Trash2 } from "lucide-react";
+import { Crown, FileUp, ImageUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -56,6 +56,20 @@ const programsToText = (programs: DivisionProgram[]) =>
     .map((p) => (p.description ? `${p.name} | ${p.description}` : p.name))
     .join("\n");
 
+// Deteksi divisi "Pengurus Inti" (BPH) — sama tolerannya dengan backend:
+// anggotanya mengisi bagian Ketua/Wakil/Sekretaris/Bendahara pada struktur
+// organisasi di halaman publik.
+const isCoreDivision = (d: Division) => {
+  const norm = (v: string | null) =>
+    (v || "").toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+  const s = norm(d.slug);
+  const n = norm(d.name);
+  if (s === "inti" || n === "inti" || s === "bph" || n === "bph") return true;
+  return ["pengurus inti", "pengurus harian", "badan pengurus harian"].some(
+    (k) => s.includes(k) || n.includes(k)
+  );
+};
+
 export function AdminDivisions() {
   const { data: divisions = [], isLoading } = useDivisions();
   const { data: members = [] } = useAdminMembers({ limit: 200 });
@@ -87,6 +101,20 @@ export function AdminDivisions() {
     setEditing(null);
     setForm(emptyForm);
     setSlugTouched(false);
+    setOpen(true);
+  };
+  // Buat divisi Pengurus Inti dengan satu klik (form sudah terisi).
+  const openCreateCore = () => {
+    setEditing(null);
+    setForm({
+      ...emptyForm,
+      name: "Pengurus Inti",
+      slug: "pengurus-inti",
+      subtitle: "Badan Pengurus Harian",
+      description:
+        "Jajaran inti organisasi: Ketua, Wakil Ketua, Sekretaris, dan Bendahara.",
+    });
+    setSlugTouched(true);
     setOpen(true);
   };
   const openEdit = (d: Division) => {
@@ -135,6 +163,11 @@ export function AdminDivisions() {
             <div className="w-7 h-7 rounded bg-neutral-200" />
           )}
           {d.name || "—"}
+          {isCoreDivision(d) && (
+            <span title="Pengurus Inti — anggotanya tampil di puncak struktur organisasi">
+              👑
+            </span>
+          )}
         </div>
       ),
     },
@@ -173,6 +206,40 @@ export function AdminDivisions() {
           </>
         }
       />
+
+      {/* Panduan struktur organisasi publik (Ketua/Sekretaris/Bendahara) */}
+      {!isLoading && !divisions.some(isCoreDivision) ? (
+        <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 text-sm text-amber-900">
+            <p className="font-semibold flex items-center gap-1.5">
+              <Crown size={15} /> Ketua, Sekretaris &amp; Bendahara belum tampil di
+              struktur organisasi
+            </p>
+            <p className="mt-1 text-amber-800">
+              Bagian atas bagan struktur di halaman publik diisi dari anggota divisi
+              khusus <b>“Pengurus Inti”</b>. Buat divisinya, lalu tautkan anggota di
+              menu <b>Anggota → edit → Divisi &amp; Jabatan</b> dengan jabatan
+              “Ketua Umum”, “Wakil Ketua Internal”, “Sekretaris 1”, “Bendahara 1”, dst.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            className="shrink-0"
+            onClick={openCreateCore}
+          >
+            <Crown size={14} /> Buat Divisi Pengurus Inti
+          </Button>
+        </div>
+      ) : (
+        !isLoading && (
+          <p className="mb-3 text-xs text-neutral-400">
+            Divisi bertanda 👑 adalah Pengurus Inti — anggotanya tampil sebagai
+            Ketua/Wakil/Sekretaris/Bendahara di struktur organisasi halaman publik,
+            bukan sebagai kotak divisi.
+          </p>
+        )
+      )}
+
       <DataTable columns={columns} rows={divisions} isLoading={isLoading} rowKey={(d) => d.id} />
 
       <Dialog open={open} onOpenChange={setOpen}>
