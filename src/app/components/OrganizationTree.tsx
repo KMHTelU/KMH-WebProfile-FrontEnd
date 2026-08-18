@@ -1,21 +1,37 @@
-import React, { useState, useRef, useLayoutEffect, useCallback } from "react";
+import { useState, useRef, useLayoutEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router";
 import { X, ExternalLink, Sparkles, ChevronDown } from "lucide-react";
 import { SmartImage } from "./common/SmartImage";
+import { useOrganizationTree } from "../../lib/api/hooks";
+import { ENABLE_STATIC_FALLBACK } from "../../lib/config";
+import type { OrgTree, OrgTreePerson } from "../../lib/api/types";
 
 export interface OrgNode {
   id: string;
   title: string;
   name: string;
   nim: string;
-  category: "Pengurus Inti" | "Internal Division" | "External Division";
+  category: string;
   photo: string;
   description: string;
   responsibilities?: string[];
   divisionSlug: string;
 }
 
-export const orgNodes: OrgNode[] = [
+interface EdgeGroup {
+  parent: string;
+  children: string[];
+}
+
+// Avatar netral saat member belum punya foto.
+const FALLBACK_PHOTO =
+  "data:image/svg+xml;charset=utf-8," +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='#27272a'/><circle cx='50' cy='38' r='16' fill='#a1a1aa'/><path d='M18 92c4-20 18-28 32-28s28 8 32 28z' fill='#a1a1aa'/></svg>"
+  );
+
+// ── Data fallback (dipakai bila API belum berisi data) ──
+const fallbackNodes: OrgNode[] = [
   {
     id: "ketua",
     title: "Ketua",
@@ -183,8 +199,16 @@ export const orgNodes: OrgNode[] = [
   },
 ];
 
+const fallbackRows: string[][] = [
+  ["ketua"],
+  ["wakil-internal", "sekretaris-1", "sekretaris-2", "wakil-external"],
+  ["bendahara-1", "bendahara-2"],
+  ["kaderisasi", "pengembangan-minat-bakat", "pengabdian-masyarakat", "hubungan-masyarakat"],
+  ["rohani", "media", "kewirausahaan", "logistik-transportasi"],
+];
+
 // Grouped edge definitions — children per parent share ONE bus just below parent
-const EDGE_GROUPS: Array<{ parent: string; children: string[] }> = [
+const fallbackEdges: EdgeGroup[] = [
   // Ketua → ALL level-2 + bendahara in ONE group so they share the same horizontal bus
   { parent: "ketua", children: ["wakil-internal", "sekretaris-1", "bendahara-1", "bendahara-2", "sekretaris-2", "wakil-external"] },
   { parent: "wakil-internal", children: ["kaderisasi", "pengembangan-minat-bakat"] },
@@ -194,6 +218,130 @@ const EDGE_GROUPS: Array<{ parent: string; children: string[] }> = [
   { parent: "pengabdian-masyarakat", children: ["kewirausahaan"] },
   { parent: "hubungan-masyarakat", children: ["logistik-transportasi"] },
 ];
+
+// ── Pembentukan tree dari data API ──
+
+// Urutan baris pengurus inti ditentukan dari kata kunci jabatan.
+function roleRank(roleTitle: string | null): number {
+  const r = (roleTitle || "").toLowerCase();
+  if (r.includes("wakil")) return 1;
+  if (r.includes("ketua")) return 0;
+  if (r.includes("bendahara")) return 3;
+  return 2; // sekretaris & jabatan inti lainnya di baris tengah
+}
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+interface BuiltTree {
+  nodes: OrgNode[];
+  rows: string[][];
+  edges: EdgeGroup[];
+}
+
+function buildTreeFromApi(tree: OrgTree | undefined): BuiltTree | null {
+  if (!tree || (tree.leadership.length === 0 && tree.divisions.length === 0)) {
+    return null;
+  }
+
+  const personNode = (p: OrgTreePerson, key: string): OrgNode => ({
+    id: `lead-${p.memberId || key}`,
+    title: p.roleTitle || "Pengurus Inti",
+    name: p.name || "",
+    nim: p.nim || "",
+    category: "Pengurus Inti",
+    photo: p.photoUrl || FALLBACK_PHOTO,
+    description: "",
+    divisionSlug: "",
+  });
+
+  const ketua = tree.leadership.filter((p) => roleRank(p.roleTitle) === 0);
+  const wakil = tree.leadership.filter((p) => roleRank(p.roleTitle) === 1);
+  const tengah = tree.leadership
+    .filter((p) => roleRank(p.roleTitle) === 2)
+    .concat(ketua.slice(1));
+  const bendahara = tree.leadership.filter((p) => roleRank(p.roleTitle) === 3);
+
+  const ketuaNode = ketua[0] ? personNode(ketua[0], "ketua") : null;
+  // Wakil diletakkan di ujung kiri & kanan agar sesuai desain awal.
+  const level2People =
+    wakil.length >= 2 ? [wakil[0], ...tengah, ...wakil.slice(1)] : [...wakil, ...tengah];
+  const level2 = level2People.map((p, i) => personNode(p, `l2-${i}`));
+  const bendaharaNodes = bendahara.map((p, i) => personNode(p, `bend-${i}`));
+
+  const nodes: OrgNode[] = [];
+  const rows: string[][] = [];
+  const edges: EdgeGroup[] = [];
+
+  if (ketuaNode) {
+    nodes.push(ketuaNode);
+    rows.push([ketuaNode.id]);
+  }
+  if (level2.length > 0) {
+    nodes.push(...level2);
+    chunk(level2, 4).forEach((group) => rows.push(group.map((n) => n.id)));
+  }
+  if (bendaharaNodes.length > 0) {
+    nodes.push(...bendaharaNodes);
+    chunk(bendaharaNodes, 4).forEach((group) => rows.push(group.map((n) => n.id)));
+  }
+  if (ketuaNode && (level2.length > 0 || bendaharaNodes.length > 0)) {
+    edges.push({
+      parent: ketuaNode.id,
+      children: [...level2, ...bendaharaNodes].map((n) => n.id),
+    });
+  }
+
+  const divisionNodes: OrgNode[] = tree.divisions.map((d) => ({
+    id: `div-${d.id}`,
+    title: d.name || "Divisi",
+    name: d.coordinator?.name || "Koordinator belum diatur",
+    nim: d.coordinator?.nim || "",
+    category: "Divisi KMH",
+    photo: d.coordinator?.photoUrl || FALLBACK_PHOTO,
+    description: d.description || d.subtitle || "",
+    responsibilities: d.responsibilities.length > 0 ? d.responsibilities : undefined,
+    divisionSlug: d.slug || d.id,
+  }));
+  const divisionRows = chunk(divisionNodes, 4);
+  divisionRows.forEach((row) => {
+    nodes.push(...row);
+    rows.push(row.map((n) => n.id));
+  });
+
+  // Baris divisi pertama tersambung ke para wakil (dibagi rata); tanpa wakil,
+  // tersambung langsung ke ketua.
+  if (divisionRows[0]) {
+    const firstRow = divisionRows[0];
+    const wakilNodes = level2.filter((_, i) => roleRank(level2People[i].roleTitle) === 1);
+    if (wakilNodes.length > 0) {
+      const per = Math.ceil(firstRow.length / wakilNodes.length);
+      wakilNodes.forEach((w, i) => {
+        const children = firstRow.slice(i * per, (i + 1) * per);
+        if (children.length > 0) {
+          edges.push({ parent: w.id, children: children.map((n) => n.id) });
+        }
+      });
+    } else if (ketuaNode) {
+      edges.push({ parent: ketuaNode.id, children: firstRow.map((n) => n.id) });
+    }
+  }
+  // Baris divisi berikutnya dirantai per kolom ke baris di atasnya.
+  for (let r = 1; r < divisionRows.length; r++) {
+    const prev = divisionRows[r - 1];
+    const groups = new Map<string, string[]>();
+    divisionRows[r].forEach((n, c) => {
+      const parent = prev[Math.min(c, prev.length - 1)];
+      groups.set(parent.id, [...(groups.get(parent.id) ?? []), n.id]);
+    });
+    groups.forEach((children, parent) => edges.push({ parent, children }));
+  }
+
+  return { nodes, rows, edges };
+}
 
 interface NodeRect {
   id: string;
@@ -231,6 +379,14 @@ function buildGroupPath(parent: NodeRect, children: NodeRect[]): string {
 }
 
 export function OrganizationTree() {
+  const { data: tree } = useOrganizationTree();
+  const built = useMemo(() => buildTreeFromApi(tree), [tree]);
+
+  const nodes = built?.nodes ?? (ENABLE_STATIC_FALLBACK ? fallbackNodes : []);
+  const rows = built?.rows ?? (ENABLE_STATIC_FALLBACK ? fallbackRows : []);
+  const edges = built?.edges ?? (ENABLE_STATIC_FALLBACK ? fallbackEdges : []);
+  const nodeById = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
+
   const [selectedNode, setSelectedNode] = useState<OrgNode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -256,7 +412,7 @@ export function OrganizationTree() {
       };
     }
 
-    const newPaths = EDGE_GROUPS.map(({ parent, children }) => {
+    const newPaths = edges.map(({ parent, children }) => {
       const parentRect = rects[parent];
       if (!parentRect) return null;
       const childRects = children.map((c) => rects[c]).filter(Boolean) as NodeRect[];
@@ -265,10 +421,10 @@ export function OrganizationTree() {
     }).filter(Boolean) as Array<{ id: string; d: string }>;
 
     setPaths(newPaths);
-  }, []);
+  }, [edges]);
 
   useLayoutEffect(() => {
-    // Initial measure + on resize
+    // Initial measure + on resize + saat data API masuk (rows berubah)
     recalcPaths();
     const ro = new ResizeObserver(recalcPaths);
     if (containerRef.current) ro.observe(containerRef.current);
@@ -277,7 +433,7 @@ export function OrganizationTree() {
       ro.disconnect();
       window.removeEventListener("resize", recalcPaths);
     };
-  }, [recalcPaths]);
+  }, [recalcPaths, rows]);
 
   const setRef = (id: string) => (el: HTMLButtonElement | null) => {
     nodeRefs.current[id] = el;
@@ -289,6 +445,7 @@ export function OrganizationTree() {
     return "bg-amber-50 text-amber-800 border border-amber-200";
   };
 
+  if (nodes.length === 0) return null;
 
   return (
     <section className="relative py-8 px-4 overflow-hidden rounded-3xl bg-[#121214] border border-amber-500/25 shadow-2xl my-4">
@@ -342,66 +499,57 @@ export function OrganizationTree() {
 
         {/* Node grid (z-10 above SVG) */}
         <div className="relative z-10 flex flex-col gap-10 items-center pb-4">
-          {/* Level 1: Ketua */}
-          <div className="flex justify-center w-full">
-            <NodePill
-              node={orgNodes.find((n) => n.id === "ketua")!}
-              onSelect={setSelectedNode}
-              refCb={setRef("ketua")}
-              isMain
-            />
-          </div>
-
-          {/* Level 2: 4 columns */}
-          <div className="grid grid-cols-4 gap-4 w-full px-2">
-            {["wakil-internal", "sekretaris-1", "sekretaris-2", "wakil-external"].map((id) => (
-              <div key={id} className="flex justify-center">
-                <NodePill
-                  node={orgNodes.find((n) => n.id === id)!}
-                  onSelect={setSelectedNode}
-                  refCb={setRef(id)}
-                />
+          {rows.map((row, rowIdx) => {
+            if (row.length === 1) {
+              const node = nodeById.get(row[0]);
+              if (!node) return null;
+              return (
+                <div key={`row-${rowIdx}`} className="flex justify-center w-full">
+                  <NodePill
+                    node={node}
+                    onSelect={setSelectedNode}
+                    refCb={setRef(node.id)}
+                    isMain={rowIdx === 0}
+                  />
+                </div>
+              );
+            }
+            if (row.length === 2) {
+              return (
+                <div key={`row-${rowIdx}`} className="flex justify-center gap-16">
+                  {row.map((id) => {
+                    const node = nodeById.get(id);
+                    if (!node) return null;
+                    return (
+                      <NodePill
+                        key={id}
+                        node={node}
+                        onSelect={setSelectedNode}
+                        refCb={setRef(id)}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            }
+            return (
+              <div
+                key={`row-${rowIdx}`}
+                className="grid gap-4 w-full px-2"
+                style={{ gridTemplateColumns: `repeat(${Math.min(row.length, 4)}, minmax(0, 1fr))` }}
+              >
+                {row.map((id) => {
+                  const node = nodeById.get(id);
+                  if (!node) return null;
+                  return (
+                    <div key={id} className="flex justify-center">
+                      <NodePill node={node} onSelect={setSelectedNode} refCb={setRef(id)} />
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-
-          {/* Level 2.5: Bendahara pair */}
-          <div className="flex justify-center gap-16">
-            {["bendahara-1", "bendahara-2"].map((id) => (
-              <NodePill
-                key={id}
-                node={orgNodes.find((n) => n.id === id)!}
-                onSelect={setSelectedNode}
-                refCb={setRef(id)}
-              />
-            ))}
-          </div>
-
-          {/* Level 3: 4 columns */}
-          <div className="grid grid-cols-4 gap-4 w-full px-2">
-            {["kaderisasi", "pengembangan-minat-bakat", "pengabdian-masyarakat", "hubungan-masyarakat"].map((id) => (
-              <div key={id} className="flex justify-center">
-                <NodePill
-                  node={orgNodes.find((n) => n.id === id)!}
-                  onSelect={setSelectedNode}
-                  refCb={setRef(id)}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Level 4: 4 columns */}
-          <div className="grid grid-cols-4 gap-4 w-full px-2">
-            {["rohani", "media", "kewirausahaan", "logistik-transportasi"].map((id) => (
-              <div key={id} className="flex justify-center">
-                <NodePill
-                  node={orgNodes.find((n) => n.id === id)!}
-                  onSelect={setSelectedNode}
-                  refCb={setRef(id)}
-                />
-              </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 
@@ -410,7 +558,7 @@ export function OrganizationTree() {
         <div className="text-xs text-amber-400 text-center font-medium mb-3 flex items-center justify-center gap-1.5">
           <ChevronDown size={14} className="animate-bounce" /> Tap mana saja untuk melihat detail
         </div>
-        {orgNodes.map((node) => (
+        {nodes.map((node) => (
           <button
             key={node.id}
             onClick={() => setSelectedNode(node)}
@@ -457,11 +605,15 @@ export function OrganizationTree() {
               </div>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 tracking-tight">{selectedNode.name}</h3>
-            <div className="text-amber-400 font-mono text-xs sm:text-sm tracking-wider mb-3">{selectedNode.nim}</div>
+            {selectedNode.nim && (
+              <div className="text-amber-400 font-mono text-xs sm:text-sm tracking-wider mb-3">{selectedNode.nim}</div>
+            )}
             <div className="flex justify-center mb-4">
               <span className={`text-xs px-3 py-1 rounded-full font-semibold ${categoryBadgeClass(selectedNode.category)}`}>{selectedNode.category}</span>
             </div>
-            <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed mb-5 px-2">{selectedNode.description}</p>
+            {selectedNode.description && (
+              <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed mb-5 px-2">{selectedNode.description}</p>
+            )}
             {selectedNode.responsibilities && selectedNode.responsibilities.length > 0 && (
               <div className="text-left bg-neutral-950/70 rounded-2xl p-3.5 border border-amber-500/20 mb-5 space-y-1.5 text-xs text-neutral-300">
                 <div className="text-amber-400 font-bold text-[11px] uppercase tracking-wider mb-1">Tugas Utama:</div>
@@ -471,14 +623,16 @@ export function OrganizationTree() {
               </div>
             )}
             <div className="flex items-center justify-center gap-3">
-              <Link
-                to={`/divisions/${selectedNode.divisionSlug}`}
-                onClick={() => setSelectedNode(null)}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold text-neutral-950 transition-all duration-200 hover:scale-105"
-                style={{ background: "linear-gradient(135deg, #FFD700 0%, #FFBF00 100%)", boxShadow: "0 4px 15px rgba(255,191,0,0.4)" }}
-              >
-                Lihat Halaman Divisi <ExternalLink size={14} />
-              </Link>
+              {selectedNode.divisionSlug && (
+                <Link
+                  to={`/divisions/${selectedNode.divisionSlug}`}
+                  onClick={() => setSelectedNode(null)}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold text-neutral-950 transition-all duration-200 hover:scale-105"
+                  style={{ background: "linear-gradient(135deg, #FFD700 0%, #FFBF00 100%)", boxShadow: "0 4px 15px rgba(255,191,0,0.4)" }}
+                >
+                  Lihat Halaman Divisi <ExternalLink size={14} />
+                </Link>
+              )}
               <button onClick={() => setSelectedNode(null)} className="px-5 py-2.5 rounded-full text-xs font-semibold text-neutral-400 hover:text-white border border-neutral-700 hover:border-neutral-500 transition-colors">
                 Tutup
               </button>

@@ -59,6 +59,34 @@ export interface Member {
   photo: Media | null;
 }
 
+// ── Organization tree (GET /organization-tree) ──
+
+/** Orang yang tampil di struktur organisasi (foto = foto member yang sudah ada). */
+export interface OrgTreePerson {
+  memberId: string;
+  name: string | null;
+  nim: string | null;
+  photoUrl: string | null;
+  roleTitle: string | null;
+}
+
+export interface OrgTreeDivision {
+  id: string;
+  name: string | null;
+  slug: string | null;
+  subtitle: string | null;
+  description: string | null;
+  responsibilities: string[];
+  coordinator: OrgTreePerson | null;
+}
+
+export interface OrgTree {
+  /** Pengurus inti (dari divisi ber-slug inti/pengurus-inti/bph). */
+  leadership: OrgTreePerson[];
+  /** Divisi aktif beserta koordinatornya (divisi inti tidak disertakan). */
+  divisions: OrgTreeDivision[];
+}
+
 /** Satu penugasan anggota ke divisi (baris tabel member_divisions + info divisinya). */
 export interface MemberDivision {
   /** ID baris penugasan (dipakai untuk update/hapus). */

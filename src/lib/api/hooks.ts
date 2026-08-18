@@ -13,6 +13,7 @@ import {
   getGallery,
   getMembers,
   getOrganizationProfile,
+  getOrganizationTree,
   submitContactMessage,
   type ListParams,
 } from "./endpoints";
@@ -32,6 +33,7 @@ export const queryKeys = {
   division: (id: string) => ["divisions", id] as const,
   members: (params?: ListParams) => ["members", params ?? {}] as const,
   orgProfile: (id: string) => ["organization-profile", id] as const,
+  orgTree: ["organization-tree"] as const,
   // Admin-only
   users: ["users"] as const,
   user: (id: string) => ["users", id] as const,
@@ -77,6 +79,9 @@ export const useDivision = (id: string) =>
 
 export const useMembers = (params?: ListParams) =>
   useQuery({ queryKey: queryKeys.members(params), queryFn: () => getMembers(params) });
+
+export const useOrganizationTree = () =>
+  useQuery({ queryKey: queryKeys.orgTree, queryFn: getOrganizationTree });
 
 export const useOrganizationProfile = (id: string) =>
   useQuery({

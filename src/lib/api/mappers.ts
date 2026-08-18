@@ -14,6 +14,9 @@ import type {
   Member,
   MemberDivision,
   OrganizationProfile,
+  OrgTree,
+  OrgTreeDivision,
+  OrgTreePerson,
   Role,
 } from "./types";
 
@@ -81,6 +84,38 @@ export function mapEvent(row: Row): EventItem {
     divisionName: str(src.division_name),
     divisionSlug: str(src.division_slug),
   };
+}
+
+// Respons GET /organization-tree: { leadership: [...], divisions: [...] }.
+function mapOrgTreePerson(row: Row | null | undefined): OrgTreePerson | null {
+  if (!row || !row.member_id) return null;
+  return {
+    memberId: String(row.member_id),
+    name: str(row.name),
+    nim: str(row.nim),
+    photoUrl: str(row.photo_url),
+    roleTitle: str(row.role_title),
+  };
+}
+
+export function mapOrgTree(data: Row | null | undefined): OrgTree {
+  const leadership = Array.isArray(data?.leadership)
+    ? (data!.leadership.map(mapOrgTreePerson).filter(Boolean) as OrgTreePerson[])
+    : [];
+  const divisions: OrgTreeDivision[] = Array.isArray(data?.divisions)
+    ? data!.divisions.map((row: Row) => ({
+        id: String(row.id),
+        name: str(row.name),
+        slug: str(row.slug),
+        subtitle: str(row.subtitle),
+        description: str(row.description),
+        responsibilities: Array.isArray(row.responsibilities)
+          ? row.responsibilities.map((r: unknown) => String(r ?? "")).filter(Boolean)
+          : [],
+        coordinator: mapOrgTreePerson(row.coordinator),
+      }))
+    : [];
+  return { leadership, divisions };
 }
 
 // Row hasil GET /members/:id/divisions: kolom member_divisions + join divisions

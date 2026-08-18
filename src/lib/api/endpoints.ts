@@ -10,6 +10,7 @@ import {
   mapGalleryDetail,
   mapMember,
   mapOrganizationProfile,
+  mapOrgTree,
 } from "./mappers";
 import type {
   Banner,
@@ -25,6 +26,7 @@ import type {
   GalleryDetail,
   Member,
   OrganizationProfile,
+  OrgTree,
 } from "./types";
 
 export interface ListParams {
@@ -105,6 +107,12 @@ export async function getDivision(id: string): Promise<Division> {
 export async function getMembers(params?: ListParams): Promise<Member[]> {
   const data = await apiGet<unknown>("/members", listConfig(params));
   return asArray(data).map(mapMember);
+}
+
+// ── Organization Tree (struktur organisasi publik) ──
+export async function getOrganizationTree(): Promise<OrgTree> {
+  const data = await apiGet<unknown>("/organization-tree");
+  return mapOrgTree(data as Record<string, any>);
 }
 
 // ── Organization Profile ──
