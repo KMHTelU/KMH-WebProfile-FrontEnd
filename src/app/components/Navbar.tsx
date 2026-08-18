@@ -109,7 +109,7 @@ export function Navbar() {
               atau hapus penambahan " hidden" di baris className ini. /login tetap
               bisa diakses langsung via URL.
             */}
-            <Link
+            {/* <Link
               to="/login"
               data-admin-login
               className={`md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm transition-colors ${
@@ -117,7 +117,7 @@ export function Navbar() {
               } ${SHOW_ADMIN_LOGIN_LINK ? "hidden md:inline-flex" : "hidden"}`}
             >
               <Lock size={14} /> Login
-            </Link>
+            </Link> */}
             <Link
               to="/contact"
               className="hidden md:inline-flex items-center px-5 py-2 rounded-full text-sm text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
@@ -175,7 +175,7 @@ export function Navbar() {
           >
             Join KMH
           </Link>
-          <Link
+          {/* <Link
             to="/login"
             data-admin-login
             className={`px-4 py-3 rounded-xl text-sm text-center text-neutral-500 hover:bg-neutral-50 ${
@@ -183,7 +183,7 @@ export function Navbar() {
             }`}
           >
             Login
-          </Link>
+          </Link> */}
         </div>
       </div>
     </nav>

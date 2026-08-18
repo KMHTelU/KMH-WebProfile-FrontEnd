@@ -4,6 +4,7 @@ import kmhLogo from "../../assets/KMH.png";
 import { SmartImage } from "../components/common/SmartImage";
 import { Aurora, BlurText, CountUp, GradientText, Reveal } from "../components/common/motion";
 import { Seo } from "../components/common/Seo";
+import { OrganizationTree } from "../components/OrganizationTree";
 import {
   useBannersView,
   useDivisionsView,
@@ -204,49 +205,27 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── Divisions Preview ── */}
-      <section className="py-24 px-6 bg-neutral-50">
+      {/* ── Organization Structure (Divisions) Section ── */}
+      <section className="py-16 px-6 bg-neutral-950">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-6 gap-4">
             <div>
-              <div className="inline-block text-xs tracking-widest uppercase text-amber-600 mb-3" style={{ fontWeight: 600 }}>
-                Divisions
+              <div className="inline-block text-xs tracking-widest uppercase text-amber-500 mb-2 font-semibold">
+                Divisions & Structure
               </div>
-              <h2 className="text-neutral-900" style={{ fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
-                Our Divisions
+              <h2 className="text-white text-3xl font-bold tracking-tight">
+                Struktur Divisi Organisasi
               </h2>
             </div>
             <Link
               to="/divisions"
-              className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-              style={{ fontWeight: 500 }}
+              className="inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 font-semibold transition-colors"
             >
-              View All Divisions <ChevronRight size={16} />
+              Lihat Selengkapnya <ChevronRight size={16} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {divisions.slice(0, 6).map((div, i) => (
-              <Reveal as="div" key={div.id} delay={i * 0.05}>
-                <Link
-                  to={`/divisions/${div.id}`}
-                  className="group block bg-white rounded-2xl p-6 border border-neutral-100 hover:border-amber-200 hover:shadow-lg transition-all duration-200"
-                  style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <span className={`text-xs px-2.5 py-1 rounded-full ${categoryColor(div.category)}`} style={{ fontWeight: 500 }}>
-                      {div.category}
-                    </span>
-                    <ChevronRight size={16} className="text-neutral-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all duration-200" />
-                  </div>
-                  <h3 className="text-neutral-900 mb-2 group-hover:text-amber-700 transition-colors" style={{ fontSize: "1rem", fontWeight: 600 }}>
-                    {div.name}
-                  </h3>
-                  <p className="text-neutral-500 text-sm leading-relaxed line-clamp-2">{div.shortDescription}</p>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
+          <OrganizationTree />
         </div>
       </section>
 

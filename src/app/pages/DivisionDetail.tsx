@@ -16,10 +16,19 @@ const categoryBadgeHero = (cat: string) => {
   return "bg-white/10 text-white/80 border border-white/20";
 };
 
+const ALIAS_MAP: Record<string, string> = {
+  humas: "hubungan-masyarakat",
+  pmb: "pengembangan-minat-bakat",
+  pengmas: "pengabdian-masyarakat",
+  logtrans: "logistik-transportasi",
+  "logistik-transport": "logistik-transportasi",
+};
+
 export function DivisionDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: divisions } = useDivisionsView();
-  const division = divisions.find((d) => d.id === id);
+  const realId = ALIAS_MAP[id || ""] || id;
+  const division = divisions.find((d) => d.id === realId || d.id === id);
 
   if (!division) return <Navigate to="/divisions" replace />;
 

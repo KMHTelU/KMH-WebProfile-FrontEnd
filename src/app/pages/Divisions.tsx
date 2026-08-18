@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { SmartImage } from "../components/common/SmartImage";
 import { Seo } from "../components/common/Seo";
 import { useDivisionsView } from "../../lib/content";
+import { OrganizationTree } from "../components/OrganizationTree";
 
 const HERO_IMAGE = "https://images.unsplash.com/photo-1708578200684-3aa944b73237?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920";
 
@@ -17,8 +18,8 @@ export function Divisions() {
   return (
     <div className="min-h-screen bg-white">
       <Seo
-        title="Divisi"
-        description="Kenali divisi-divisi di Keluarga Mahasiswa Hindu Telkom University beserta program dan kegiatannya."
+        title="Divisi & Struktur Organisasi"
+        description="Kenali divisi-divisi dan struktur organisasi di Keluarga Mahasiswa Hindu Telkom University beserta program dan kegiatannya."
         path="/divisions"
       />
       {/* Hero */}
@@ -33,17 +34,30 @@ export function Divisions() {
             className="text-white mb-2"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.15 }}
           >
-            Our Divisions
+            Our Organization Structure
           </h1>
           <p className="text-white/70 max-w-lg" style={{ fontSize: "1rem" }}>
-            Nine specialized divisions working together in harmony to fulfill KMH's mission.
+            Struktur kepengurusan dan sembilan divisi yang bekerja secara harmonis dalam menjalankan visi KMH Telkom University.
           </p>
         </div>
       </section>
 
+      {/* ── Organization Structure Tree Branch Section ── */}
+      <section className="px-4 sm:px-6 lg:px-8 pt-8 pb-4 max-w-7xl mx-auto">
+        <OrganizationTree />
+      </section>
+
       {/* Divisions Grid */}
-      <section className="py-20 px-6">
+      <section className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h2 className="text-neutral-900 text-2xl font-bold tracking-tight mb-2">
+              Daftar Seluruh Divisi
+            </h2>
+            <p className="text-neutral-500 text-sm">
+              Klik divisi di bawah untuk melihat anggota, tugas, serta program kerja selengkapnya.
+            </p>
+          </div>
           {/* Category Legend */}
           <div className="flex flex-wrap items-center gap-3 mb-12">
             <span className="text-xs text-neutral-400" style={{ fontWeight: 500 }}>Categories:</span>
