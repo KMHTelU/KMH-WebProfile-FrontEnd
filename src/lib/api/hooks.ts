@@ -6,6 +6,7 @@ import {
   getBlogPosts,
   getBlogTags,
   getDivision,
+  getDivisionMembers,
   getDivisions,
   getEvent,
   getEvents,
@@ -76,6 +77,13 @@ export const useDivisions = () =>
 
 export const useDivision = (id: string) =>
   useQuery({ queryKey: queryKeys.division(id), queryFn: () => getDivision(id), enabled: !!id });
+
+export const useDivisionMembers = (id: string) =>
+  useQuery({
+    queryKey: ["divisions", id, "members"],
+    queryFn: () => getDivisionMembers(id),
+    enabled: !!id,
+  });
 
 export const useMembers = (params?: ListParams) =>
   useQuery({ queryKey: queryKeys.members(params), queryFn: () => getMembers(params) });

@@ -2,7 +2,7 @@ import { useParams, Link, Navigate } from "react-router";
 import { ArrowLeft, ChevronRight, Star, Users } from "lucide-react";
 import { SmartImage } from "../components/common/SmartImage";
 import { Seo } from "../components/common/Seo";
-import { useDivisionsView } from "../../lib/content";
+import { useDivisionsView, useDivisionTeamView } from "../../lib/content";
 
 const categoryColor = (cat: string) => {
   if (cat === "Core Management") return "bg-amber-50 text-amber-700 border border-amber-200";
@@ -29,6 +29,10 @@ export function DivisionDetail() {
   const { data: divisions } = useDivisionsView();
   const realId = ALIAS_MAP[id || ""] || id;
   const division = divisions.find((d) => d.id === realId || d.id === id);
+
+  // Seluruh anggota tertaut (member-divisi) + koordinator, bukan hanya
+  // koordinator. Hook harus dipanggil sebelum early-return.
+  const teamMembers = useDivisionTeamView(division);
 
   if (!division) return <Navigate to="/divisions" replace />;
 
@@ -225,8 +229,13 @@ export function DivisionDetail() {
               >
                 Division Members
               </h2>
+              {teamMembers.length === 0 && (
+                <p className="text-sm text-neutral-400">
+                  Belum ada anggota yang tercatat di divisi ini.
+                </p>
+              )}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {division.members.map((member, i) => (
+                {teamMembers.map((member, i) => (
                   <div
                     key={i}
                     className="flex flex-col items-center text-center p-5 rounded-2xl border border-neutral-100 hover:border-amber-200 hover:shadow-md transition-all duration-200"
@@ -250,6 +259,14 @@ export function DivisionDetail() {
                       {member.name}
                     </p>
                     <p className="text-neutral-400 text-xs mt-0.5">{member.role}</p>
+                    {member.academic && (
+                      <p
+                        className="text-amber-700/80 text-[11px] mt-1"
+                        title={member.faculty}
+                      >
+                        {member.academic}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -286,7 +303,7 @@ export function DivisionDetail() {
                     Members
                   </span>
                   <span className="text-xs text-neutral-700" style={{ fontWeight: 600 }}>
-                    {division.members.length} listed
+                    {teamMembers.length} listed
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-neutral-50">

@@ -17,13 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
+import { MemberCombobox } from "../components/MemberCombobox";
 import { useDivisions } from "../../../lib/api/hooks";
 import {
   useAdminMembers,
@@ -333,19 +327,13 @@ export function AdminDivisions() {
             </div>
             <div className="space-y-1.5">
               <FieldLabel>Koordinator</FieldLabel>
-              <Select value={form.coordinator_id} onValueChange={(v) => set("coordinator_id", v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih koordinator" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>— Tidak ada —</SelectItem>
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MemberCombobox
+                members={members}
+                value={form.coordinator_id === NONE ? null : form.coordinator_id}
+                onChange={(memberId) => set("coordinator_id", memberId ?? NONE)}
+                placeholder="Pilih koordinator…"
+                noneLabel="— Tidak ada koordinator —"
+              />
             </div>
             {editing && (
               <div className="flex items-center justify-between">

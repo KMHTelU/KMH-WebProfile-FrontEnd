@@ -11,11 +11,24 @@ export interface OrgNode {
   title: string;
   name: string;
   nim: string;
+  /** Info akademik ringkas: "S1 Informatika · Fakultas Informatika · Angkatan 2022". */
+  academic?: string;
   category: string;
   photo: string;
   description: string;
   responsibilities?: string[];
   divisionSlug: string;
+}
+
+// Baris akademik agar mahasiswa baru mudah mengenal kakak tingkatnya.
+function academicOf(p: OrgTreePerson | null | undefined): string | undefined {
+  if (!p) return undefined;
+  const parts = [
+    p.studyProgram || null,
+    p.faculty || null,
+    p.cohortYear ? `Angkatan ${p.cohortYear}` : null,
+  ].filter(Boolean);
+  return parts.length > 0 ? (parts as string[]).join(" · ") : undefined;
 }
 
 interface EdgeGroup {
@@ -252,6 +265,7 @@ function buildTreeFromApi(tree: OrgTree | undefined): BuiltTree | null {
     title: p.roleTitle || "Pengurus Inti",
     name: p.name || "",
     nim: p.nim || "",
+    academic: academicOf(p),
     category: "Pengurus Inti",
     photo: p.photoUrl || FALLBACK_PHOTO,
     description: "",
@@ -300,6 +314,7 @@ function buildTreeFromApi(tree: OrgTree | undefined): BuiltTree | null {
     title: d.name || "Divisi",
     name: d.coordinator?.name || "Koordinator belum diatur",
     nim: d.coordinator?.nim || "",
+    academic: academicOf(d.coordinator),
     category: "Divisi KMH",
     photo: d.coordinator?.photoUrl || FALLBACK_PHOTO,
     description: d.description || d.subtitle || "",
@@ -606,7 +621,10 @@ export function OrganizationTree() {
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 tracking-tight">{selectedNode.name}</h3>
             {selectedNode.nim && (
-              <div className="text-amber-400 font-mono text-xs sm:text-sm tracking-wider mb-3">{selectedNode.nim}</div>
+              <div className="text-amber-400 font-mono text-xs sm:text-sm tracking-wider mb-1.5">{selectedNode.nim}</div>
+            )}
+            {selectedNode.academic && (
+              <div className="text-neutral-400 text-xs mb-3">{selectedNode.academic}</div>
             )}
             <div className="flex justify-center mb-4">
               <span className={`text-xs px-3 py-1 rounded-full font-semibold ${categoryBadgeClass(selectedNode.category)}`}>{selectedNode.category}</span>

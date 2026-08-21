@@ -186,6 +186,9 @@ export function AdminMembers() {
     email: "",
     phone: "",
     instagram_url: "",
+    faculty: "",
+    study_program: "",
+    cohort_year: "" as string | number,
     period_start: currentYear,
     period_end: currentYear + 1,
     is_active: true,
@@ -213,6 +216,9 @@ export function AdminMembers() {
       email: "",
       phone: "",
       instagram_url: "",
+      faculty: "",
+      study_program: "",
+      cohort_year: "",
       period_start: currentYear,
       period_end: currentYear + 1,
       is_active: true,
@@ -228,6 +234,9 @@ export function AdminMembers() {
       email: m.email || "",
       phone: m.phone || "",
       instagram_url: m.instagramUrl || "",
+      faculty: m.faculty || "",
+      study_program: m.studyProgram || "",
+      cohort_year: m.cohortYear ?? "",
       period_start: m.periodStart ?? currentYear,
       period_end: m.periodEnd ?? currentYear + 1,
       is_active: m.isActive,
@@ -243,6 +252,9 @@ export function AdminMembers() {
       email: form.email || undefined,
       phone: form.phone || undefined,
       instagram_url: form.instagram_url || undefined,
+      faculty: form.faculty || undefined,
+      study_program: form.study_program || undefined,
+      cohort_year: form.cohort_year ? Number(form.cohort_year) : undefined,
       period_start: Number(form.period_start),
       period_end: Number(form.period_end),
     };
@@ -280,6 +292,19 @@ export function AdminMembers() {
       ),
     },
     { key: "nim", header: "NIM", cell: (m) => m.nim || "—" },
+    {
+      key: "academic",
+      header: "Prodi / Angkatan",
+      cell: (m) =>
+        m.studyProgram || m.cohortYear ? (
+          <span className="text-xs">
+            {m.studyProgram || "—"}
+            {m.cohortYear ? ` · ${m.cohortYear}` : ""}
+          </span>
+        ) : (
+          "—"
+        ),
+    },
     {
       key: "period",
       header: "Periode",
@@ -429,6 +454,31 @@ export function AdminMembers() {
             <div className="space-y-1.5">
               <FieldLabel>Instagram URL</FieldLabel>
               <Input value={form.instagram_url} onChange={(e) => set("instagram_url", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <FieldLabel>Fakultas</FieldLabel>
+              <Input
+                placeholder="cth: Fakultas Informatika"
+                value={form.faculty}
+                onChange={(e) => set("faculty", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <FieldLabel>Program Studi</FieldLabel>
+              <Input
+                placeholder="cth: S1 Informatika"
+                value={form.study_program}
+                onChange={(e) => set("study_program", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <FieldLabel>Tahun Angkatan</FieldLabel>
+              <Input
+                type="number"
+                placeholder="cth: 2022"
+                value={form.cohort_year}
+                onChange={(e) => set("cohort_year", e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <FieldLabel required>Periode Mulai</FieldLabel>

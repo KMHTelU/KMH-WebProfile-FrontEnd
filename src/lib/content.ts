@@ -8,6 +8,7 @@ import {
 import { ENABLE_STATIC_FALLBACK } from "./config";
 import {
   useBanners,
+  useDivisionMembers,
   useDivisions,
   useEvents,
   useGalleries,
@@ -18,6 +19,10 @@ import type { Banner, Division, EventItem, Gallery } from "./api/types";
 // ── View models (bentuk yang dipakai halaman, kompatibel dengan kmh-data.ts) ──
 export interface DivisionView {
   id: string;
+  /** UUID asli divisi di backend (tidak ada pada data statis fallback). */
+  uuid?: string;
+  /** ID member koordinator (untuk deduplikasi daftar anggota). */
+  coordinatorId?: string | null;
   name: string;
   shortDescription: string;
   description: string;
@@ -51,7 +56,7 @@ export interface GalleryImageView {
   year: number;
 }
 
-const FALLBACK_IMG =
+export const FALLBACK_IMG =
   "https://images.unsplash.com/photo-1667133000547-36edda79f81d?w=800&h=600&fit=crop";
 
 function formatDate(iso: string | null): string {
@@ -76,6 +81,8 @@ function mapEventStatus(s: string | null): "Upcoming" | "Completed" {
 export function divisionToView(d: Division): DivisionView {
   return {
     id: d.slug || d.id,
+    uuid: d.id,
+    coordinatorId: d.coordinator?.id ?? null,
     name: d.name || "",
     // Subtitle dipakai di hero; bila kosong jatuh ke deskripsi panjang.
     shortDescription: d.subtitle || d.description || "",
@@ -129,6 +136,79 @@ export function useDivisionsView() {
     [query.data]
   );
   return { ...query, data };
+}
+
+/**
+ * Daftar anggota sebuah divisi untuk halaman detail: seluruh anggota yang
+ * ditautkan lewat member-divisi (beserta jabatannya) + koordinator di urutan
+ * pertama, tanpa duplikat. Bila API kosong (mis. data statis fallback),
+ * memakai daftar bawaan view (koordinator saja).
+ */
+export interface TeamMemberView {
+  name: string;
+  role: string;
+  photo: string;
+  /** Info akademik ringkas: "S1 Informatika · Angkatan 2022". */
+  academic?: string;
+  faculty?: string;
+}
+
+// Baris akademik untuk kartu anggota — krusial agar mahasiswa baru mudah
+// mengenal kakak tingkatnya.
+function academicLine(studyProgram: string | null, cohortYear: number | null) {
+  const parts = [
+    studyProgram || null,
+    cohortYear ? `Angkatan ${cohortYear}` : null,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : undefined;
+}
+
+export function useDivisionTeamView(
+  division: DivisionView | undefined
+): TeamMemberView[] {
+  const membersQuery = useDivisionMembers(division?.uuid ?? "");
+
+  return useMemo(() => {
+    const fromApi = (membersQuery.data ?? [])
+      .filter((m) => m.isActive)
+      .map((m) => ({
+        memberId: m.memberId,
+        name: m.name || "",
+        role: m.roleTitle || "Anggota",
+        photo: m.photoUrl || FALLBACK_IMG,
+        academic: academicLine(m.studyProgram, m.cohortYear),
+        faculty: m.faculty || undefined,
+      }));
+
+    if (fromApi.length === 0) return division?.members ?? [];
+
+    // Koordinator selalu tampil paling depan.
+    const coordinatorId = division?.coordinatorId;
+    const idx = coordinatorId
+      ? fromApi.findIndex((m) => m.memberId === coordinatorId)
+      : -1;
+    if (idx > 0) {
+      const [coordinator] = fromApi.splice(idx, 1);
+      fromApi.unshift(coordinator);
+    } else if (idx === -1 && coordinatorId && division?.members[0]) {
+      // Koordinator di-set di data divisi tapi tidak ditautkan lewat
+      // member-divisi — tetap tampilkan di depan.
+      fromApi.unshift({
+        memberId: coordinatorId,
+        academic: undefined,
+        faculty: undefined,
+        ...division.members[0],
+      });
+    }
+
+    return fromApi.map(({ name, role, photo, academic, faculty }) => ({
+      name,
+      role,
+      photo,
+      academic,
+      faculty,
+    }));
+  }, [membersQuery.data, division]);
 }
 
 export function useEventsView() {

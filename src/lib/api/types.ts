@@ -53,6 +53,9 @@ export interface Member {
   email: string | null;
   phone: string | null;
   instagramUrl: string | null;
+  faculty: string | null;
+  studyProgram: string | null;
+  cohortYear: number | null;
   periodStart: number | null;
   periodEnd: number | null;
   isActive: boolean;
@@ -174,6 +177,9 @@ export interface OrgTreePerson {
   memberId: string;
   name: string | null;
   nim: string | null;
+  faculty: string | null;
+  studyProgram: string | null;
+  cohortYear: number | null;
   photoUrl: string | null;
   roleTitle: string | null;
 }
@@ -193,6 +199,20 @@ export interface OrgTree {
   leadership: OrgTreePerson[];
   /** Divisi aktif beserta koordinatornya (divisi inti tidak disertakan). */
   divisions: OrgTreeDivision[];
+}
+
+/** Anggota sebuah divisi (baris member_divisions + info member + fotonya). */
+export interface DivisionMember {
+  /** ID baris penugasan. */
+  id: string;
+  memberId: string | null;
+  name: string | null;
+  roleTitle: string | null;
+  photoUrl: string | null;
+  faculty: string | null;
+  studyProgram: string | null;
+  cohortYear: number | null;
+  isActive: boolean;
 }
 
 /** Satu penugasan anggota ke divisi (baris tabel member_divisions + info divisinya). */
@@ -401,6 +421,9 @@ export interface MemberPayload {
   email?: string;
   phone?: string;
   instagram_url?: string;
+  faculty?: string;
+  study_program?: string;
+  cohort_year?: number;
   period_start: number;
   period_end: number;
 }

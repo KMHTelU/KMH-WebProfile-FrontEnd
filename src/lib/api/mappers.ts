@@ -7,6 +7,7 @@ import type {
   ContactMessage,
   Division,
   EventItem,
+  DivisionMember,
   Gallery,
   GalleryDetail,
   GalleryItem,
@@ -146,6 +147,9 @@ function mapOrgTreePerson(row: Row | null | undefined): OrgTreePerson | null {
     memberId: String(row.member_id),
     name: str(row.name),
     nim: str(row.nim),
+    faculty: str(row.faculty),
+    studyProgram: str(row.study_program),
+    cohortYear: num(row.cohort_year),
     photoUrl: str(row.photo_url),
     roleTitle: str(row.role_title),
   };
@@ -171,6 +175,22 @@ export function mapOrgTree(data: Row | null | undefined): OrgTree {
   return { leadership, divisions };
 }
 
+// Row hasil GET /divisions/:id/members: kolom member_divisions + join members
+// (id anggota di id_2, nama/foto anggota di name/photo_url).
+export function mapDivisionMember(row: Row): DivisionMember {
+  return {
+    id: String(row.id),
+    memberId: str(row.member_id ?? row.id_2),
+    name: str(row.name),
+    roleTitle: str(row.role_title),
+    photoUrl: str(row.photo_url),
+    faculty: str(row.faculty),
+    studyProgram: str(row.study_program),
+    cohortYear: num(row.cohort_year),
+    isActive: row.is_active !== false,
+  };
+}
+
 // Row hasil GET /members/:id/divisions: kolom member_divisions + join divisions
 // (id divisi berada di id_2, nama/slug divisi di name/slug).
 export function mapMemberDivision(row: Row): MemberDivision {
@@ -193,6 +213,9 @@ export function mapMember(row: Row): Member {
     email: str(row.email),
     phone: str(row.phone),
     instagramUrl: str(row.instagram_url),
+    faculty: str(row.faculty),
+    studyProgram: str(row.study_program),
+    cohortYear: num(row.cohort_year),
     periodStart: num(row.period_start),
     periodEnd: num(row.period_end),
     isActive: bool(row.is_active),

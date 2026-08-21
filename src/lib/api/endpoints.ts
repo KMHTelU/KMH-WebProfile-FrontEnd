@@ -5,6 +5,7 @@ import {
   mapBlogPost,
   mapBlogTag,
   mapDivision,
+  mapDivisionMember,
   mapEvent,
   mapGallery,
   mapGalleryDetail,
@@ -19,6 +20,7 @@ import type {
   BlogTag,
   ContactMessagePayload,
   Division,
+  DivisionMember,
   EventItem,
   ForgotPasswordPayload,
   ResetPasswordPayload,
@@ -101,6 +103,12 @@ export async function getDivisions(): Promise<Division[]> {
 export async function getDivision(id: string): Promise<Division> {
   const data = await apiGet<unknown>(`/divisions/${id}`);
   return mapDivision(data as Record<string, any>);
+}
+
+/** Semua anggota yang ditautkan ke sebuah divisi (beserta jabatan & foto). */
+export async function getDivisionMembers(id: string): Promise<DivisionMember[]> {
+  const data = await apiGet<unknown>(`/divisions/${id}/members`);
+  return asArray(data).map(mapDivisionMember);
 }
 
 // ── Members (endpoint publik ditambahkan di backend) ──
