@@ -23,6 +23,8 @@ export interface DivisionView {
   uuid?: string;
   /** ID member koordinator (untuk deduplikasi daftar anggota). */
   coordinatorId?: string | null;
+  /** Jumlah anggota divisi (dihitung backend; data statis memakai members.length). */
+  memberCount?: number;
   name: string;
   shortDescription: string;
   description: string;
@@ -83,11 +85,12 @@ export function divisionToView(d: Division): DivisionView {
     id: d.slug || d.id,
     uuid: d.id,
     coordinatorId: d.coordinator?.id ?? null,
+    memberCount: d.memberCount,
     name: d.name || "",
-    // Subtitle dipakai di hero; bila kosong jatuh ke deskripsi panjang.
+    // Subtitle dipakai di hero; bila kosong jatuh ke deskripsi panjang.s
     shortDescription: d.subtitle || d.description || "",
     description: d.description || "",
-    category: d.divisionType === "external" ? "External Division" : "Internal Division",
+    category: d.divisionType === "external" ? "External Division" : d.divisionType === "core" ? "Core Management" : "Internal Division",
     responsibilities: d.responsibilities ?? [],
     programs: d.programs ?? [],
     image: d.icon?.url || FALLBACK_IMG,

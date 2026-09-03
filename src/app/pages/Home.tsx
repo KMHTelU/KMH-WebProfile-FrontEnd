@@ -74,7 +74,7 @@ export function Home() {
             <img src={kmhLogo} alt="KMH Logo" className="w-20 h-20 object-contain" />
           </div>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm text-white/80 text-xs tracking-widest uppercase mb-6">
-            <Sparkles size={12} />
+            {/* <Sparkles size={12} /> */}
             Keluarga Mahasiswa Hindu · Telkom University
           </div>
           <h1
@@ -391,7 +391,7 @@ export function Home() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-24 px-6 bg-white">
+      {/* <section className="py-24 px-6 bg-white">
         <div className="max-w-3xl mx-auto text-center">
           <div
             className="relative rounded-3xl px-8 py-16 overflow-hidden"
@@ -420,7 +420,7 @@ export function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

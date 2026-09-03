@@ -265,6 +265,7 @@ export function mapDivision(row: Row): Division {
     isActive: bool(row.is_active),
     icon: mapMedia(row),
     coordinator,
+    memberCount: num(row.member_count) ?? 0,
   };
 }
 

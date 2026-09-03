@@ -108,7 +108,7 @@ export function Divisions() {
                   </p>
                   <div className="mt-4 pt-4 border-t border-neutral-100 flex items-center justify-between">
                     <span className="text-xs text-neutral-400">
-                      {div.members.length} members
+                      {div.memberCount ?? div.members.length} members
                     </span>
                     <span className="text-xs text-amber-600 group-hover:text-amber-700 transition-colors" style={{ fontWeight: 500 }}>
                       View Details →

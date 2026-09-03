@@ -54,7 +54,7 @@ export function Contact() {
         subject: c.subject || undefined,
         message: c.message,
       });
-      toast.success("Pesan terkirim. Terima kasih!");
+      toast.success("Pesan terkirim. Kami akan merespons secepatnya melalui email yang Anda berikan. Terima kasih!");
       setC({ name: "", email: "", subject: "", message: "" });
     } catch (err) {
       toast.error(parseApiError(err).message);
@@ -90,8 +90,8 @@ export function Contact() {
   return (
     <div className="min-h-screen bg-white">
       <Seo
-        title="Kontak & Gabung"
-        description="Hubungi Keluarga Mahasiswa Hindu Telkom University atau daftar menjadi anggota. Kami terbuka untuk seluruh mahasiswa Hindu Tel-U."
+        title="Kontak"
+        description="Hubungi Keluarga Mahasiswa Hindu Telkom University."
         path="/contact"
       />
       {/* Hero */}
@@ -106,9 +106,9 @@ export function Contact() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/70 z-10" />
         <div className="relative z-20 text-center px-6">
-          <div className="text-xs tracking-widest uppercase text-amber-300 mb-3">Kontak & Bergabung</div>
+          <div className="text-xs tracking-widest uppercase text-amber-300 mb-3">Kontak</div>
           <h1 className="text-white" style={{ fontSize: "clamp(2rem,5vw,3rem)", fontWeight: 700 }}>
-            Hubungi & Bergabung dengan KMH
+            Hubungi KMH
           </h1>
         </div>
       </section>
@@ -122,34 +122,42 @@ export function Contact() {
                 Mari Terhubung
               </h2>
               <p className="text-neutral-600 leading-relaxed">
-                Punya pertanyaan atau ingin menjadi bagian dari keluarga KMH Telkom University?
-                Kirim pesan atau daftar melalui formulir di samping.
+                Punya pertanyaan untuk KMH Tel-U?
+                Kirim pesan melalui formulir di samping.
               </p>
             </div>
             <div className="space-y-4 text-sm">
               <div className="flex items-start gap-3">
                 <MapPin size={18} className="text-amber-500 mt-0.5" />
-                <span className="text-neutral-600">Telkom University, Bandung, Jawa Barat</span>
+                <span className="text-neutral-600">Sekretariat: Student Center Lt. 2, Telkom University</span>
               </div>
               <div className="flex items-start gap-3">
                 <Mail size={18} className="text-amber-500 mt-0.5" />
-                <a href="mailto:kmh@student.telkomuniversity.ac.id" className="text-neutral-600 hover:text-amber-700">
-                  kmh@student.telkomuniversity.ac.id
+                <a href="mailto:kmh.telkomuniversity@gmail.com" className="text-neutral-600 hover:text-amber-700">
+                  kmh.telkomuniversity@gmail.com
                 </a>
               </div>
               <div className="flex items-start gap-3">
-                <Phone size={18} className="text-amber-500 mt-0.5" />
-                <span className="text-neutral-600">+62 8xx-xxxx-xxxx</span>
+                <Instagram size={18} className="text-amber-500 mt-0.5" />
+                <a
+                  href="https://www.instagram.com/kmh.telkomuniversity/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-neutral-600 hover:text-amber-700"
+                  aria-label="Instagram"
+                >
+                  instagram.com/kmh.telkomuniversity
+                </a>
               </div>
             </div>
-            <div className="flex gap-3">
+            {/* <div className="flex gap-3">
               <a href="#" className="w-10 h-10 rounded-full bg-neutral-100 hover:bg-amber-50 flex items-center justify-center text-neutral-600 hover:text-amber-600 transition-colors" aria-label="Instagram">
                 <Instagram size={18} />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-neutral-100 hover:bg-amber-50 flex items-center justify-center text-neutral-600 hover:text-amber-600 transition-colors" aria-label="YouTube">
                 <Youtube size={18} />
               </a>
-            </div>
+            </div> */}
           </Reveal>
 
           {/* Forms */}
@@ -158,7 +166,6 @@ export function Contact() {
               <Tabs defaultValue="contact">
                 <TabsList className="mb-6">
                   <TabsTrigger value="contact">Kontak</TabsTrigger>
-                  <TabsTrigger value="join">Gabung (Join)</TabsTrigger>
                 </TabsList>
 
                 {/* Kontak */}

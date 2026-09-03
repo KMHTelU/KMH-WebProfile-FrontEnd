@@ -93,8 +93,8 @@ export function About() {
     apiValue != null && apiValue !== ("" as unknown as T)
       ? apiValue
       : fb
-      ? fallback
-      : empty;
+        ? fallback
+        : empty;
   const pickList = (apiText: string | null | undefined, fallback: string[]): string[] => {
     const arr = splitLines(apiText);
     return arr.length > 0 ? arr : fb ? fallback : [];
@@ -255,45 +255,45 @@ export function About() {
               ))}
             </div>
           ) : (
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-[19px] top-2 bottom-2 w-px bg-neutral-200" />
-            <div className="space-y-8">
-              {timelineItems.map((item, i) => (
-                <div key={i} className="flex gap-6">
-                  <div className="relative shrink-0">
-                    <div
-                      className="w-10 h-10 rounded-full border-2 border-amber-400 bg-white flex items-center justify-center z-10 relative"
-                      style={{ boxShadow: "0 0 0 4px rgba(251,191,36,0.15)" }}
-                    >
-                      <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+            <div className="relative">
+              {/* Timeline line */}
+              <div className="absolute left-[19px] top-2 bottom-2 w-px bg-neutral-200" />
+              <div className="space-y-8">
+                {timelineItems.map((item, i) => (
+                  <div key={i} className="flex gap-6">
+                    <div className="relative shrink-0">
+                      <div
+                        className="w-10 h-10 rounded-full border-2 border-amber-400 bg-white flex items-center justify-center z-10 relative"
+                        style={{ boxShadow: "0 0 0 4px rgba(251,191,36,0.15)" }}
+                      >
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                      </div>
+                    </div>
+                    <div className="pb-2 pt-1">
+                      {item.year && (
+                        <div className="text-xs text-amber-600 mb-1" style={{ fontWeight: 700 }}>
+                          {item.year}
+                        </div>
+                      )}
+                      {item.title && (
+                        <h3 className="text-neutral-900 mb-1.5" style={{ fontSize: "1rem", fontWeight: 600 }}>
+                          {item.title}
+                        </h3>
+                      )}
+                      {item.description && (
+                        <p className="text-neutral-500 text-sm leading-relaxed">{item.description}</p>
+                      )}
                     </div>
                   </div>
-                  <div className="pb-2 pt-1">
-                    {item.year && (
-                      <div className="text-xs text-amber-600 mb-1" style={{ fontWeight: 700 }}>
-                        {item.year}
-                      </div>
-                    )}
-                    {item.title && (
-                      <h3 className="text-neutral-900 mb-1.5" style={{ fontSize: "1rem", fontWeight: 600 }}>
-                        {item.title}
-                      </h3>
-                    )}
-                    {item.description && (
-                      <p className="text-neutral-500 text-sm leading-relaxed">{item.description}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
           )}
         </div>
       </section>
 
       {/* Join Section */}
-      <section id="join" className="py-20 px-6 bg-neutral-950">
+      {/* <section id="join" className="py-20 px-6 bg-neutral-950">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-block text-xs tracking-widest uppercase text-amber-500 mb-4" style={{ fontWeight: 600 }}>
             Bergabung
@@ -320,7 +320,7 @@ export function About() {
             Explore Divisions <ArrowRight size={16} />
           </Link>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

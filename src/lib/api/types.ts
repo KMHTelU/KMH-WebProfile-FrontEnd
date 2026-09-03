@@ -232,7 +232,7 @@ export interface DivisionProgram {
   description: string;
 }
 
-export type DivisionType = "internal" | "external";
+export type DivisionType = "internal" | "external" | "core";
 
 export interface Division {
   id: string;
@@ -247,6 +247,8 @@ export interface Division {
   isActive: boolean;
   icon: Media | null;
   coordinator: Member | null;
+  /** Jumlah anggota unik divisi (penugasan ∪ koordinator), dihitung backend. */
+  memberCount: number;
 }
 
 export interface BlogCategory {

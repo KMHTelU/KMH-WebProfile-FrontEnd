@@ -27,12 +27,11 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-sm text-neutral-400 leading-relaxed max-w-sm mt-4">
-              Keluarga Mahasiswa Hindu Telkom University — Bersatu dalam Dharma,
-              Berkembang dalam Karya, Berbakti kepada Sesama.
+              Keluarga Mahasiswa Hindu Telkom University — Rahayu Lan Mesari
             </p>
             <div className="flex items-center gap-4 mt-6">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/kmh.telkomuniversity/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-neutral-800 hover:bg-amber-600 flex items-center justify-center transition-colors duration-200"
@@ -41,7 +40,7 @@ export function Footer() {
                 <Instagram size={16} />
               </a>
               <a
-                href="mailto:kmh@telkomuniversity.ac.id"
+                href="mailto:kmh.telkomuniversity@gmail.com"
                 className="w-9 h-9 rounded-full bg-neutral-800 hover:bg-amber-600 flex items-center justify-center transition-colors duration-200"
                 aria-label="Email"
               >
@@ -61,6 +60,7 @@ export function Footer() {
                 { label: "About", path: "/about" },
                 { label: "Divisions", path: "/divisions" },
                 { label: "Events", path: "/events" },
+                { label: "Blogs", path: "/blogs" },
                 { label: "Gallery", path: "/gallery" },
               ].map((link) => (
                 <li key={link.path}>
@@ -93,11 +93,11 @@ export function Footer() {
             <div className="space-y-3">
               <div className="flex items-start gap-2 text-sm text-neutral-400">
                 <MapPin size={14} className="mt-0.5 shrink-0 text-neutral-500" />
-                <span>Jl. Telekomunikasi No. 1, Terusan Buah Batu, Bandung, Jawa Barat 40257</span>
+                <span>Sekretariat: Student Center Lt. 2, Telkom University, Jl. Telekomunikasi No. 1, Terusan Buah Batu, Bandung, Jawa Barat 40257</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-neutral-400">
                 <Mail size={14} className="shrink-0 text-neutral-500" />
-                <span>kmh@telkomuniversity.ac.id</span>
+                <span>kmh.telkomuniversity@gmail.com</span>
               </div>
             </div>
           </div>
