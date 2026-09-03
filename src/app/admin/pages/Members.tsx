@@ -164,7 +164,7 @@ function MemberDivisionsSection({ member }: { member: Member }) {
 }
 
 export function AdminMembers() {
-  const { data: members = [], isLoading } = useAdminMembers({ limit: 200 });
+  const { data: members = [], isLoading } = useAdminMembers({ limit: 1000 });
   const createM = useCreateMember();
   const updateM = useUpdateMember();
   const deleteM = useDeleteMember();

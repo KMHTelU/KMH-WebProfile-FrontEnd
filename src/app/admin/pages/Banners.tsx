@@ -42,7 +42,7 @@ const emptyForm = {
 };
 
 export function AdminBanners() {
-  const { data: banners = [], isLoading } = useAdminBanners({ limit: 100 });
+  const { data: banners = [], isLoading } = useAdminBanners({ limit: 500 });
   const createM = useCreateBanner();
   const deleteM = useDeleteBanner();
   const fileRef = useRef<HTMLInputElement>(null);

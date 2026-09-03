@@ -18,7 +18,7 @@ const statusBadge = (s: string | null) => {
 };
 
 export function AdminBlogPosts() {
-  const { data: posts = [], isLoading } = useBlogPosts({ limit: 200 });
+  const { data: posts = [], isLoading } = useBlogPosts({ limit: 500 });
   const deleteM = useDeleteBlogPost();
   const navigate = useNavigate();
   const [toDelete, setToDelete] = useState<BlogPost | null>(null);

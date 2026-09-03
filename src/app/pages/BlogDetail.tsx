@@ -22,7 +22,7 @@ function formatDate(iso: string | null): string {
 
 export function BlogDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const { data: posts = [], isLoading } = useBlogPosts({ limit: 200 });
+  const { data: posts = [], isLoading } = useBlogPosts({ limit: 500 });
 
   const match = posts.find((p) => p.slug === slug || p.id === slug);
   const { data: detail } = useBlogPost(match?.id || "");

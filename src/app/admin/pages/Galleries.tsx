@@ -87,8 +87,8 @@ function ItemsManager({ galleryId }: { galleryId: string }) {
 }
 
 export function AdminGalleries() {
-  const { data: galleries = [], isLoading } = useGalleries({ limit: 100 });
-  const { data: events = [] } = useAdminEvents({ limit: 200 });
+  const { data: galleries = [], isLoading } = useGalleries({ limit: 500 });
+  const { data: events = [] } = useAdminEvents({ limit: 1000 });
   const createM = useCreateGallery();
   const updateM = useUpdateGallery();
   const deleteM = useDeleteGallery();

@@ -99,7 +99,7 @@ const emptyForm = {
 };
 
 export function AdminEvents() {
-  const { data: events = [], isLoading } = useAdminEvents({ limit: 200 });
+  const { data: events = [], isLoading } = useAdminEvents({ limit: 1000 });
   const { data: divisions = [] } = useDivisions();
   const createM = useCreateEvent();
   const updateM = useUpdateEvent();

@@ -66,7 +66,7 @@ const isCoreDivision = (d: Division) => {
 
 export function AdminDivisions() {
   const { data: divisions = [], isLoading } = useDivisions();
-  const { data: members = [] } = useAdminMembers({ limit: 200 });
+  const { data: members = [] } = useAdminMembers({ limit: 1000 });
   const createM = useCreateDivision();
   const updateM = useUpdateDivision();
   const deleteM = useDeleteDivision();
@@ -138,7 +138,19 @@ export function AdminDivisions() {
       coordinator_id: form.coordinator_id === NONE ? undefined : form.coordinator_id,
     };
     if (editing) {
-      await updateM.mutateAsync({ id: editing.id, payload: { ...base, is_active: form.is_active } });
+      // Memilih "— Tidak ada koordinator —" saat edit berarti melepas
+      // koordinator lama (backend butuh flag eksplisit karena field kosong
+      // diartikan "tidak diubah").
+      const clearCoordinator =
+        form.coordinator_id === NONE && !!editing.coordinator?.id;
+      await updateM.mutateAsync({
+        id: editing.id,
+        payload: {
+          ...base,
+          is_active: form.is_active,
+          clear_coordinator: clearCoordinator || undefined,
+        },
+      });
     } else {
       await createM.mutateAsync(base);
     }

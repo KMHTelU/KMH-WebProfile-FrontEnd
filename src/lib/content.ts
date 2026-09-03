@@ -212,7 +212,7 @@ export function useDivisionTeamView(
 }
 
 export function useEventsView() {
-  const query = useEvents({ limit: 100 });
+  const query = useEvents({ limit: 300 });
   const data = useMemo(
     () => withFallback(query.data?.map(eventToView), staticEvents as unknown as EventView[]),
     [query.data]
@@ -229,7 +229,7 @@ export function useBannersView() {
 
 // Flatten semua album galeri publik menjadi daftar gambar (untuk grid galeri).
 export function useGalleryView() {
-  const galleriesQuery = useGalleries({ limit: 50 });
+  const galleriesQuery = useGalleries({ limit: 200 });
   const galleries: Gallery[] = (galleriesQuery.data ?? []).filter((g) => g.isPublic);
 
   const detailQueries = useQueries({

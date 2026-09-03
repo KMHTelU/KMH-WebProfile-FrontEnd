@@ -478,6 +478,8 @@ export interface MemberUpdatePayload extends Partial<MemberPayload> {
 // Update payload untuk divisi.
 export interface DivisionUpdatePayload extends Partial<DivisionPayload> {
   is_active?: boolean;
+  /** true = lepas koordinator (coordinator_id di-set NULL di backend). */
+  clear_coordinator?: boolean;
 }
 
 // Item galeri (referensi media yang sudah ada).

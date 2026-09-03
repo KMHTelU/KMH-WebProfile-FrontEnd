@@ -119,10 +119,10 @@ const dateFmt = new Intl.DateTimeFormat("id-ID", {
 
 export function Dashboard() {
   const { user } = useAuth();
-  const members = useAdminMembers({ limit: 200 });
-  const events = useAdminEvents({ limit: 100 });
-  const posts = useBlogPosts({ limit: 100 });
-  const messages = useContactMessages({ limit: 100 });
+  const members = useAdminMembers({ limit: 1000 });
+  const events = useAdminEvents({ limit: 500 });
+  const posts = useBlogPosts({ limit: 500 });
+  const messages = useContactMessages({ limit: 500 });
 
   const memberList = members.data ?? [];
   const activeMembers = memberList.filter((m) => m.isActive).length;

@@ -20,7 +20,7 @@ import {
 import type { ContactMessage } from "../../../lib/api/types";
 
 export function AdminContactMessages() {
-  const { data: messages = [], isLoading } = useContactMessages({ limit: 200 });
+  const { data: messages = [], isLoading } = useContactMessages({ limit: 500 });
   const markRead = useMarkContactMessageRead();
   const deleteM = useDeleteContactMessage();
 

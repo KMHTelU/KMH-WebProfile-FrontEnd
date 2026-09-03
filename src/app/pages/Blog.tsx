@@ -27,7 +27,7 @@ function formatDate(iso: string | null): string {
 }
 
 export function Blog() {
-  const { data: posts = [], isLoading } = useBlogPosts({ limit: 200 });
+  const { data: posts = [], isLoading } = useBlogPosts({ limit: 500 });
   const { data: categories = [] } = useBlogCategories();
 
   const [query, setQuery] = useState("");

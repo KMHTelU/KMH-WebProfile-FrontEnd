@@ -169,7 +169,7 @@ export function AdminLayout() {
   const [pwdOpen, setPwdOpen] = useState(false);
 
   // Sinkron dengan query Dashboard (key sama) sehingga tidak menambah fetch.
-  const { data: messages } = useContactMessages({ limit: 100 });
+  const { data: messages } = useContactMessages({ limit: 500 });
   const unreadCount = (messages ?? []).filter((m) => !m.isRead).length;
 
   const handleLogout = () => {
