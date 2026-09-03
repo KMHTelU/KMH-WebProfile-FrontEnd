@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { ArrowRight, Calendar, ChevronRight, Landmark, Sparkles } from "lucide-react";
 import { HALL_OF_FAME_URL } from "../../lib/config";
@@ -30,16 +31,32 @@ const statusStyle = (status: string) =>
     : "bg-neutral-100 text-neutral-500 border border-neutral-200";
 
 export function Home() {
-  const { primary } = useBannersView();
+  const { banners } = useBannersView();
   const { data: divisions } = useDivisionsView();
   const { data: events } = useEventsView();
   const { data: galleryImages } = useGalleryView();
 
-  const heroImage = primary?.media?.url || HERO_IMAGE;
-  const heroTitle = primary?.title || "One Family,";
+  // ── Rotator banner hero: crossfade elegan antar banner aktif ──
+  const [heroIndex, setHeroIndex] = useState(0);
+  const activeIndex = banners.length > 0 ? heroIndex % banners.length : 0;
+  const activeBanner = banners[activeIndex] ?? null;
+
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = setInterval(
+      () => setHeroIndex((i) => (i + 1) % banners.length),
+      8000
+    );
+    return () => clearInterval(timer);
+  }, [banners.length]);
+
   const heroSubtitle =
-    primary?.subtitle ||
+    activeBanner?.subtitle ||
     "A community of Hindu students at Telkom University, growing together through spiritual practice, cultural expression, and meaningful service.";
+  const ctaText = activeBanner?.ctaText || "Discover KMH";
+  const ctaUrl = activeBanner?.ctaUrl || "/about";
+  const ctaIsExternal = /^https?:\/\//i.test(ctaUrl);
 
   const upcomingEvents = events.slice(0, 3);
   const highlightImages = galleryImages.slice(0, 6);
@@ -52,29 +69,45 @@ export function Home() {
       <Seo path="/" />
       {/* ── Hero ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background image (SmartImage: placeholder + fade-in agar tidak terkesan lemot) */}
-        <div className="absolute inset-0">
-          <SmartImage
-            src={heroImage}
-            alt="KMH Hero"
-            priority
-            fallbackSrc={HERO_IMAGE}
-            wrapperClassName="w-full h-full"
-            imgClassName="w-full h-full object-cover object-center"
-            placeholderClassName="bg-gradient-to-br from-neutral-800 to-neutral-900"
-          />
+        {/* Background: semua gambar banner ditumpuk lalu di-crossfade —
+            immersive tanpa terasa "carousel geser". */}
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900">
+          {banners.length === 0 ? (
+            <SmartImage
+              src={HERO_IMAGE}
+              alt="KMH Hero"
+              priority
+              wrapperClassName="w-full h-full"
+              imgClassName="w-full h-full object-cover object-center"
+              placeholderClassName="bg-gradient-to-br from-neutral-800 to-neutral-900"
+            />
+          ) : (
+            banners.map((banner, i) => (
+              <img
+                key={banner.id}
+                src={banner.media?.url || HERO_IMAGE}
+                alt=""
+                loading={i === 0 ? "eager" : "lazy"}
+                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity ease-in-out duration-[1600ms] ${
+                  i === activeIndex ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ))
+          )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
           <Aurora className="mix-blend-screen opacity-70" />
           <div className="absolute inset-0 bg-gradient-to-tr from-amber-900/20 via-transparent to-transparent" />
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+        {/* Content — di-remount per banner (key) agar teks ikut fade-in */}
+        <div
+          key={activeBanner?.id ?? "static-hero"}
+          className="hero-content-in relative z-10 text-center px-6 max-w-4xl mx-auto"
+        >
           <div className="flex justify-center mb-8">
             <img src={kmhLogo} alt="KMH Logo" className="w-20 h-20 object-contain" />
           </div>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm text-white/80 text-xs tracking-widest uppercase mb-6">
-            {/* <Sparkles size={12} /> */}
             Keluarga Mahasiswa Hindu · Telkom University
           </div>
           <h1
@@ -86,9 +119,17 @@ export function Home() {
               letterSpacing: "-0.02em",
             }}
           >
-            <BlurText as="span" text={heroTitle} />
-            <br />
-            <GradientText delay={0.35}>United in Dharma</GradientText>
+            {activeBanner?.title ? (
+              // Judul banner tampil utuh apa adanya — tidak lagi ditempeli
+              // baris "United in Dharma" yang membuat judul kustom kacau.
+              <BlurText as="span" text={activeBanner.title} />
+            ) : (
+              <>
+                <BlurText as="span" text="One Family," />
+                <br />
+                <GradientText delay={0.35}>United in Dharma</GradientText>
+              </>
+            )}
           </h1>
           <p
             className="text-white/75 max-w-xl mx-auto mb-10"
@@ -97,17 +138,33 @@ export function Home() {
             {heroSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              to={primary?.ctaUrl || "/about"}
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-              style={{
-                background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
-                fontWeight: 600,
-                boxShadow: "0 4px 20px rgba(180,83,9,0.35)",
-              }}
-            >
-              {primary?.ctaText || "Discover KMH"} <ArrowRight size={16} />
-            </Link>
+            {ctaIsExternal ? (
+              <a
+                href={ctaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+                  fontWeight: 600,
+                  boxShadow: "0 4px 20px rgba(180,83,9,0.35)",
+                }}
+              >
+                {ctaText} <ArrowRight size={16} />
+              </a>
+            ) : (
+              <Link
+                to={ctaUrl}
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+                  fontWeight: 600,
+                  boxShadow: "0 4px 20px rgba(180,83,9,0.35)",
+                }}
+              >
+                {ctaText} <ArrowRight size={16} />
+              </Link>
+            )}
             <Link
               to="/events"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm text-white border border-white/30 hover:bg-white/10 transition-all duration-200"
@@ -117,6 +174,24 @@ export function Home() {
             </Link>
           </div>
         </div>
+
+        {/* Indikator banner: titik-titik halus, bisa diklik untuk lompat */}
+        {banners.length > 1 && (
+          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+            {banners.map((banner, i) => (
+              <button
+                key={banner.id}
+                onClick={() => setHeroIndex(i)}
+                aria-label={`Tampilkan banner ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i === activeIndex
+                    ? "w-8 bg-amber-400"
+                    : "w-2.5 bg-white/40 hover:bg-white/70"
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Bottom fade */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />

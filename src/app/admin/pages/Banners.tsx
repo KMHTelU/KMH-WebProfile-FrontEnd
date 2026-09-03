@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { ExternalLink, Plus, Trash2, Upload } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -27,6 +27,31 @@ function toRFC3339(local: string): string {
   if (!local) return "";
   const d = new Date(local);
   return Number.isNaN(d.getTime()) ? "" : d.toISOString();
+}
+
+const fmtDate = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
+/**
+ * Status masa tayang relatif hari ini. Banner hanya tampil di homepage bila
+ * AKTIF dan berada dalam rentang tanggalnya — badge ini membuat alasannya
+ * langsung terlihat tanpa membaca tanggal satu per satu.
+ */
+function windowStatus(b: Banner): { label: string; className: string } | null {
+  if (!b.startDate || !b.endDate) return null;
+  const now = Date.now();
+  const start = new Date(b.startDate).getTime();
+  const end = new Date(b.endDate).getTime();
+  if (Number.isNaN(start) || Number.isNaN(end)) return null;
+  if (now < start) return { label: "Terjadwal", className: "bg-amber-500" };
+  if (now > end) return { label: "Berakhir", className: "bg-neutral-400" };
+  return { label: "Tayang", className: "bg-emerald-500" };
 }
 
 const emptyForm = {
@@ -92,6 +117,45 @@ export function AdminBanners() {
         ),
     },
     { key: "title", header: "Judul", cell: (b) => b.title || "—" },
+    {
+      key: "period",
+      header: "Masa Tayang",
+      cell: (b) => {
+        const status = windowStatus(b);
+        return (
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-neutral-600 whitespace-nowrap">
+              {fmtDate(b.startDate)} – {fmtDate(b.endDate)}
+            </span>
+            {status && (
+              <Badge className={`${status.className} w-fit`}>{status.label}</Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "cta",
+      header: "CTA",
+      cell: (b) =>
+        b.ctaText || b.ctaUrl ? (
+          b.ctaUrl ? (
+            <a
+              href={b.ctaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={b.ctaUrl}
+              className="inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-800 hover:underline"
+            >
+              {b.ctaText || "Tautan"} <ExternalLink size={11} />
+            </a>
+          ) : (
+            <span className="text-xs text-neutral-600">{b.ctaText}</span>
+          )
+        ) : (
+          <span className="text-neutral-400">—</span>
+        ),
+    },
     {
       key: "isActive",
       header: "Status",
