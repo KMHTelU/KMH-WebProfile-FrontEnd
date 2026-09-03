@@ -326,7 +326,7 @@ function buildTreeFromApi(tree: OrgTree | undefined): BuiltTree | null {
   // Internal menempati dua kolom KIRI (di bawah Wakil Ketua Internal),
   // external dua kolom KANAN (di bawah Wakil Ketua External).
   const internalNodes = tree.divisions
-    .filter((d) => d.divisionType !== "external")
+    .filter((d) => d.divisionType !== "external" && d.divisionType !== "core")
     .map(divisionNode);
   const externalNodes = tree.divisions
     .filter((d) => d.divisionType === "external")

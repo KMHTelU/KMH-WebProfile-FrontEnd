@@ -62,6 +62,9 @@ const programsToText = (programs: DivisionProgram[]) =>
 // anggotanya mengisi bagian Ketua/Wakil/Sekretaris/Bendahara pada struktur
 // organisasi di halaman publik.
 const isCoreDivision = (d: Division) => {
+  // Penanda utama: tipe divisi "core"; heuristik slug/nama jadi cadangan
+  // untuk data lama yang belum mengisi tipenya.
+  if (d.divisionType === "core") return true;
   const norm = (v: string | null) =>
     (v || "").toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
   const s = norm(d.slug);
@@ -90,7 +93,7 @@ export function AdminDivisions() {
     slug: "",
     subtitle: "",
     description: "",
-    division_type: "internal" as "internal" | "external",
+    division_type: "internal" as "internal" | "external" | "core",
     responsibilities: "",
     programs: "",
     coordinator_id: NONE,
@@ -113,6 +116,7 @@ export function AdminDivisions() {
       ...emptyForm,
       name: "Pengurus Inti",
       slug: "pengurus-inti",
+      division_type: "core",
       subtitle: "Badan Pengurus Harian",
       description:
         "Jajaran inti organisasi: Ketua, Wakil Ketua, Sekretaris, dan Bendahara.",
@@ -375,6 +379,9 @@ export function AdminDivisions() {
                   </SelectItem>
                   <SelectItem value="external">
                     External — di bawah Wakil Ketua External
+                  </SelectItem>
+                  <SelectItem value="core">
+                    Core — Pengurus Inti/BPH (puncak struktur organisasi)
                   </SelectItem>
                 </SelectContent>
               </Select>
