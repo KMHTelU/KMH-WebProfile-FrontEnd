@@ -166,6 +166,9 @@ export function mapOrgTree(data: Row | null | undefined): OrgTree {
         slug: str(row.slug),
         subtitle: str(row.subtitle),
         description: str(row.description),
+        divisionType: (row.division_type === "external"
+          ? "external"
+          : "internal") as OrgTreeDivision["divisionType"],
         responsibilities: Array.isArray(row.responsibilities)
           ? row.responsibilities.map((r: unknown) => String(r ?? "")).filter(Boolean)
           : [],
@@ -247,6 +250,7 @@ export function mapDivision(row: Row): Division {
     slug: str(row.slug),
     subtitle: str(row.subtitle),
     description: str(row.description),
+    divisionType: row.division_type === "external" ? "external" : "internal",
     responsibilities: Array.isArray(row.responsibilities)
       ? row.responsibilities.map((item: unknown) => String(item ?? "")).filter(Boolean)
       : [],

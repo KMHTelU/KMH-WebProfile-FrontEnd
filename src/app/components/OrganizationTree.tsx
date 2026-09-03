@@ -309,51 +309,92 @@ function buildTreeFromApi(tree: OrgTree | undefined): BuiltTree | null {
     });
   }
 
-  const divisionNodes: OrgNode[] = tree.divisions.map((d) => ({
+  const divisionNode = (d: OrgTree["divisions"][number]): OrgNode => ({
     id: `div-${d.id}`,
     title: d.name || "Divisi",
     name: d.coordinator?.name || "Koordinator belum diatur",
     nim: d.coordinator?.nim || "",
     academic: academicOf(d.coordinator),
-    category: "Divisi KMH",
+    category: d.divisionType === "external" ? "External Division" : "Internal Division",
     photo: d.coordinator?.photoUrl || FALLBACK_PHOTO,
     description: d.description || d.subtitle || "",
     responsibilities: d.responsibilities.length > 0 ? d.responsibilities : undefined,
     divisionSlug: d.slug || d.id,
-  }));
-  const divisionRows = chunk(divisionNodes, 4);
-  divisionRows.forEach((row) => {
-    nodes.push(...row);
-    rows.push(row.map((n) => n.id));
   });
 
-  // Baris divisi pertama tersambung ke para wakil (dibagi rata); tanpa wakil,
-  // tersambung langsung ke ketua.
-  if (divisionRows[0]) {
-    const firstRow = divisionRows[0];
-    const wakilNodes = level2.filter((_, i) => roleRank(level2People[i].roleTitle) === 1);
-    if (wakilNodes.length > 0) {
-      const per = Math.ceil(firstRow.length / wakilNodes.length);
-      wakilNodes.forEach((w, i) => {
-        const children = firstRow.slice(i * per, (i + 1) * per);
-        if (children.length > 0) {
-          edges.push({ parent: w.id, children: children.map((n) => n.id) });
-        }
-      });
-    } else if (ketuaNode) {
-      edges.push({ parent: ketuaNode.id, children: firstRow.map((n) => n.id) });
-    }
+  // ── Divisi dikelompokkan sesuai tipenya ──
+  // Internal menempati dua kolom KIRI (di bawah Wakil Ketua Internal),
+  // external dua kolom KANAN (di bawah Wakil Ketua External).
+  const internalNodes = tree.divisions
+    .filter((d) => d.divisionType !== "external")
+    .map(divisionNode);
+  const externalNodes = tree.divisions
+    .filter((d) => d.divisionType === "external")
+    .map(divisionNode);
+  nodes.push(...internalNodes, ...externalNodes);
+
+  // Susun baris 4 kolom: [int, int, ext, ext] per baris; slot kosong ("")
+  // dirender sebagai sel kosong agar kolom tetap sejajar.
+  const divisionRowCount = Math.max(
+    Math.ceil(internalNodes.length / 2),
+    Math.ceil(externalNodes.length / 2)
+  );
+  for (let r = 0; r < divisionRowCount; r++) {
+    rows.push([
+      internalNodes[r * 2]?.id ?? "",
+      internalNodes[r * 2 + 1]?.id ?? "",
+      externalNodes[r * 2]?.id ?? "",
+      externalNodes[r * 2 + 1]?.id ?? "",
+    ]);
   }
-  // Baris divisi berikutnya dirantai per kolom ke baris di atasnya.
-  for (let r = 1; r < divisionRows.length; r++) {
-    const prev = divisionRows[r - 1];
-    const groups = new Map<string, string[]>();
-    divisionRows[r].forEach((n, c) => {
-      const parent = prev[Math.min(c, prev.length - 1)];
-      groups.set(parent.id, [...(groups.get(parent.id) ?? []), n.id]);
+
+  // ── Sambungan garis ──
+  // Wakil Internal → divisi internal baris pertama; Wakil External → divisi
+  // external baris pertama. Wakil dikenali dari jabatannya; bila label
+  // internal/external tidak ada, urutan wakil yang dipakai. Tanpa wakil,
+  // kelompok tersambung ke ketua.
+  const wakilNodes = level2.filter((_, i) => roleRank(level2People[i].roleTitle) === 1);
+  const wakilTitles = level2People.filter((p) => roleRank(p.roleTitle) === 1);
+  const findWakil = (keywords: string[]) => {
+    const idx = wakilTitles.findIndex((p) =>
+      keywords.some((k) => (p.roleTitle || "").toLowerCase().includes(k))
+    );
+    return idx >= 0 ? wakilNodes[idx] : null;
+  };
+  const wakilInternal = findWakil(["internal"]) ?? wakilNodes[0] ?? null;
+  const wakilExternal =
+    findWakil(["external", "eksternal"]) ??
+    (wakilNodes.length > 1 ? wakilNodes[1] : wakilNodes[0] ?? null);
+
+  const groupParent = (wakilNode: OrgNode | null) => wakilNode ?? ketuaNode;
+  const internalParent = groupParent(wakilInternal);
+  const externalParent = groupParent(wakilExternal);
+
+  if (internalParent && internalNodes.length > 0) {
+    edges.push({
+      parent: internalParent.id,
+      children: internalNodes.slice(0, 2).map((n) => n.id),
     });
-    groups.forEach((children, parent) => edges.push({ parent, children }));
   }
+  if (externalParent && externalNodes.length > 0) {
+    edges.push({
+      parent: externalParent.id,
+      children: externalNodes.slice(0, 2).map((n) => n.id),
+    });
+  }
+
+  // Baris berikutnya dirantai per kolom DI DALAM kelompoknya masing-masing,
+  // sehingga garis tidak pernah menyeberang antara internal dan external.
+  const chainColumns = (list: OrgNode[]) => {
+    const groups = new Map<string, string[]>();
+    for (let i = 2; i < list.length; i++) {
+      const parent = list[i - 2];
+      groups.set(parent.id, [...(groups.get(parent.id) ?? []), list[i].id]);
+    }
+    groups.forEach((children, parent) => edges.push({ parent, children }));
+  };
+  chainColumns(internalNodes);
+  chainColumns(externalNodes);
 
   return { nodes, rows, edges };
 }
@@ -553,9 +594,11 @@ export function OrganizationTree() {
                 className="grid gap-4 w-full px-2"
                 style={{ gridTemplateColumns: `repeat(${Math.min(row.length, 4)}, minmax(0, 1fr))` }}
               >
-                {row.map((id) => {
-                  const node = nodeById.get(id);
-                  if (!node) return null;
+                {row.map((id, colIdx) => {
+                  const node = id ? nodeById.get(id) : undefined;
+                  // Slot kosong tetap dirender agar kolom internal/external
+                  // selalu sejajar (garis tidak menyeberang kelompok).
+                  if (!node) return <div key={`empty-${rowIdx}-${colIdx}`} />;
                   return (
                     <div key={id} className="flex justify-center">
                       <NodePill node={node} onSelect={setSelectedNode} refCb={setRef(id)} />

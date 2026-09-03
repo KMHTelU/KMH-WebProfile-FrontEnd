@@ -87,7 +87,7 @@ export function divisionToView(d: Division): DivisionView {
     // Subtitle dipakai di hero; bila kosong jatuh ke deskripsi panjang.
     shortDescription: d.subtitle || d.description || "",
     description: d.description || "",
-    category: "Internal Division",
+    category: d.divisionType === "external" ? "External Division" : "Internal Division",
     responsibilities: d.responsibilities ?? [],
     programs: d.programs ?? [],
     image: d.icon?.url || FALLBACK_IMG,

@@ -190,6 +190,7 @@ export interface OrgTreeDivision {
   slug: string | null;
   subtitle: string | null;
   description: string | null;
+  divisionType: DivisionType;
   responsibilities: string[];
   coordinator: OrgTreePerson | null;
 }
@@ -231,12 +232,16 @@ export interface DivisionProgram {
   description: string;
 }
 
+export type DivisionType = "internal" | "external";
+
 export interface Division {
   id: string;
   name: string | null;
   slug: string | null;
   subtitle: string | null;
   description: string | null;
+  /** internal = di bawah Wakil Ketua Internal; external = Wakil Ketua External. */
+  divisionType: DivisionType;
   responsibilities: string[];
   programs: DivisionProgram[];
   isActive: boolean;
@@ -409,6 +414,7 @@ export interface DivisionPayload {
   slug: string;
   subtitle?: string;
   description?: string;
+  division_type?: DivisionType;
   responsibilities?: string[];
   programs?: DivisionProgram[];
   coordinator_id?: string;

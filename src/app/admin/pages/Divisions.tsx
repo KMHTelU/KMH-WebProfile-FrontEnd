@@ -18,6 +18,14 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { MemberCombobox } from "../components/MemberCombobox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { Badge } from "../../components/ui/badge";
 import { useDivisions } from "../../../lib/api/hooks";
 import {
   useAdminMembers,
@@ -82,6 +90,7 @@ export function AdminDivisions() {
     slug: "",
     subtitle: "",
     description: "",
+    division_type: "internal" as "internal" | "external",
     responsibilities: "",
     programs: "",
     coordinator_id: NONE,
@@ -118,6 +127,7 @@ export function AdminDivisions() {
       slug: d.slug || "",
       subtitle: d.subtitle || "",
       description: d.description || "",
+      division_type: d.divisionType,
       responsibilities: (d.responsibilities || []).join("\n"),
       programs: programsToText(d.programs || []),
       coordinator_id: d.coordinator?.id || NONE,
@@ -133,6 +143,7 @@ export function AdminDivisions() {
       slug: form.slug || slugify(form.name),
       subtitle: form.subtitle || undefined,
       description: form.description || undefined,
+      division_type: form.division_type,
       responsibilities: parseLines(form.responsibilities),
       programs: parsePrograms(form.programs),
       coordinator_id: form.coordinator_id === NONE ? undefined : form.coordinator_id,
@@ -178,6 +189,18 @@ export function AdminDivisions() {
       ),
     },
     { key: "slug", header: "Slug", cell: (d) => d.slug || "—" },
+    {
+      key: "type",
+      header: "Tipe",
+      cell: (d) =>
+        isCoreDivision(d) ? (
+          <Badge className="bg-amber-500">Pengurus Inti</Badge>
+        ) : d.divisionType === "external" ? (
+          <Badge className="bg-blue-500">External</Badge>
+        ) : (
+          <Badge variant="secondary">Internal</Badge>
+        ),
+    },
     { key: "coordinator", header: "Koordinator", cell: (d) => d.coordinator?.name || "—" },
     {
       key: "actions",
@@ -336,6 +359,28 @@ export function AdminDivisions() {
                 rows={4}
                 onChange={(e) => set("programs", e.target.value)}
               />
+            </div>
+            <div className="space-y-1.5">
+              <FieldLabel required>Tipe Divisi</FieldLabel>
+              <Select
+                value={form.division_type}
+                onValueChange={(v) => set("division_type", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="internal">
+                    Internal — di bawah Wakil Ketua Internal
+                  </SelectItem>
+                  <SelectItem value="external">
+                    External — di bawah Wakil Ketua External
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-neutral-400">
+                Menentukan posisi divisi pada bagan struktur organisasi.
+              </p>
             </div>
             <div className="space-y-1.5">
               <FieldLabel>Koordinator</FieldLabel>
