@@ -44,7 +44,11 @@ export function MemberCombobox({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    // modal={true} WAJIB karena combobox ini dipakai di dalam Dialog:
+    // tanpa ini, Dialog modal mematikan pointer-events pada konten popover
+    // (yang di-portal ke body, di luar dialog) sehingga dropdown tidak
+    // merespons klik/ketikan sama sekali.
+    <Popover modal={true} open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           type="button"
